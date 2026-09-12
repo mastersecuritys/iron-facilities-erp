@@ -1231,15 +1231,113 @@ function switchCampo(tab,el){
   document.getElementById('campo-'+tab).style.display='block';
 }
 let fotoCount={antes:0,despues:0,factura:0};
-function simFoto(tipo){
-  fotoCount[tipo]=(fotoCount[tipo]||0)+1;
-  const grid=document.getElementById('grid-'+tipo);
-  const div=document.createElement('div');
-  div.className='foto-thumb';
-  div.style.background=['#DBEAFE','#DCFCE7','#FEF9C3','#EDE9FE'][fotoCount[tipo]%4];
-  div.innerHTML=`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">📸</div><button class="foto-del" onclick="this.parentElement.remove()">✕</button>`;
-  grid.appendChild(div);
-  showToast('Foto #'+fotoCount[tipo]+' agregada ✓');
+
+// Crear input de archivo oculto para captura real
+function simFoto(tipo) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,video/*';
+  input.capture = 'environment'; // cámara trasera en móvil
+  input.multiple = true;
+  input.onchange = function(e) {
+    Array.from(e.target.files).forEach(file => {
+      subirFotoADrive(file, tipo);
+    });
+  };
+  input.click();
+}
+
+async function subirFotoADrive(file, tipo) {
+  const nroOS = window._tecOS || document.querySelector('.campo-os')?.textContent || 'SIN-OS';
+  showToast('Subiendo ' + file.name + '...');
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64 = e.target.result.split(',')[1];
+    const mime = file.type;
+
+    try {
+      const res = await fetch(BACKEND_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'subir_foto',
+          nro_os: nroOS,
+          tipo: tipo,
+          nombre: file.name,
+          base64: base64,
+          mime: mime
+        })
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        // Mostrar miniatura en la grilla
+        fotoCount[tipo] = (fotoCount[tipo] || 0) + 1;
+        const grid = document.getElementById('grid-' + tipo);
+        const div = document.createElement('div');
+        div.className = 'foto-thumb';
+
+        // Si es imagen mostrar preview, si es video mostrar ícono
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          div.appendChild(img);
+        } else {
+          div.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;">🎥</div>';
+        }
+
+        // Botón eliminar
+        const del = document.createElement('button');
+        del.className = 'foto-del';
+        del.textContent = '✕';
+        del.onclick = function() { div.remove(); };
+        div.appendChild(del);
+
+        // Link a Drive
+        div.title = 'Ver en Drive: ' + data.url;
+        div.dataset.driveUrl = data.url;
+        div.style.cursor = 'pointer';
+        div.onclick = function(e) {
+          if (e.target !== del) window.open(data.url, '_blank');
+        };
+
+        grid.appendChild(div);
+        showToast('✅ Foto guardada en Drive (' + tipo + ')');
+      } else {
+        showToast('Error: ' + data.error);
+      }
+    } catch(err) {
+      showToast('Error subiendo foto: ' + err.message);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// Cargar fotos existentes de una O.S.
+async function cargarFotosOS(nroOS) {
+  const data = await callBackend('get_fotos', { nro_os: nroOS });
+  if (!data.ok || !data.fotos?.length) return;
+
+  data.fotos.forEach(foto => {
+    const grid = document.getElementById('grid-' + foto.tipo);
+    if (!grid) return;
+    const div = document.createElement('div');
+    div.className = 'foto-thumb';
+    div.innerHTML = '<img src="' + foto.url_directa + '" style="width:100%;height:100%;object-fit:cover;">';
+    const del = document.createElement('button');
+    del.className = 'foto-del';
+    del.textContent = '✕';
+    del.onclick = function() { div.remove(); };
+    div.appendChild(del);
+    div.title = foto.nombre + ' — ' + foto.fecha;
+    div.style.cursor = 'pointer';
+    div.onclick = function(e) {
+      if (e.target !== del) window.open(foto.url, '_blank');
+    };
+    grid.appendChild(div);
+  });
+
+  showToast(data.total + ' fotos cargadas desde Drive ✓');
 }
 let itemN=4;
 function addItem(){
