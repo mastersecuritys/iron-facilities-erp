@@ -1599,30 +1599,42 @@ function copiarOS() {
 // ── CONEXIÓN CON APPS SCRIPT (BACKEND) ──────────────
 const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbzHy6-oyOmvmtNcTYAe5O1L9pcI8ZcMLofoXNojkeEgodRgVuYn3QJMUBe6EnaPm48lsQ/exec';
 
-async function callBackend(accion, params = {}) {
-  try {
-    const url = BACKEND_URL + '?accion=' + accion + '&' + new URLSearchParams(params).toString();
-    const res = await fetch(url);
-    const data = await res.json();
-    return data;
-  } catch(e) {
-    console.error('Error backend:', e);
-    return { ok: false, error: e.message };
-  }
+// Llamada al backend via JSONP para evitar CORS con Apps Script
+function callBackend(accion, params = {}) {
+  return new Promise((resolve) => {
+    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+    const allParams = { accion, ...params, callback: cbName };
+    const qs = new URLSearchParams(allParams).toString();
+    const url = BACKEND_URL + '?' + qs;
+
+    window[cbName] = function(data) {
+      delete window[cbName];
+      document.getElementById(cbName)?.remove();
+      resolve(data);
+    };
+
+    const script = document.createElement('script');
+    script.id = cbName;
+    script.src = url;
+    script.onerror = function() {
+      delete window[cbName];
+      script.remove();
+      resolve({ ok: false, error: 'Error de conexión con el backend' });
+    };
+    setTimeout(() => {
+      if (window[cbName]) {
+        delete window[cbName];
+        script.remove();
+        resolve({ ok: false, error: 'Timeout' });
+      }
+    }, 15000);
+    document.body.appendChild(script);
+  });
 }
 
 async function callBackendPost(accion, params = {}) {
-  try {
-    const res = await fetch(BACKEND_URL, {
-      method: 'POST',
-      body: JSON.stringify({ accion, ...params })
-    });
-    const data = await res.json();
-    return data;
-  } catch(e) {
-    console.error('Error backend POST:', e);
-    return { ok: false, error: e.message };
-  }
+  // Para POST usamos GET con todos los parámetros (Apps Script no soporta POST cross-origin bien)
+  return callBackend(accion, params);
 }
 
 // Cargar dashboard desde Sheets real
