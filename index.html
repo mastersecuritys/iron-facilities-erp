@@ -1,11 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0;url=master-security-completo.html">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IRON Facilities — Master Security</title>
+<style>
+body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#F7F8FA;font-family:'Segoe UI',sans-serif;}
+.loader{text-align:center;}
+.loader-logo{font-size:32px;margin-bottom:16px;}
+.loader-text{font-size:14px;color:#6B7280;}
+.loader-bar{width:200px;height:4px;background:#E4E8F0;border-radius:4px;margin:12px auto;overflow:hidden;}
+.loader-fill{height:100%;background:#2563EB;border-radius:4px;animation:load 1.5s ease-in-out infinite;}
+@keyframes load{0%{width:0%;margin-left:0;}50%{width:60%;margin-left:20%;}100%{width:0%;margin-left:100%;}}
+</style>
 </head>
 <body>
-<script>window.location.href = 'master-security-completo.html';</script>
+<div class="loader">
+  <div class="loader-logo">🏢</div>
+  <div style="font-size:18px;font-weight:700;color:#111827;margin-bottom:4px;">IRON Facilities</div>
+  <div style="font-size:12px;color:#9CA3AF;margin-bottom:16px;">Master Security S.A.S.</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+  <div class="loader-text">Cargando sistema...</div>
+</div>
+<script>
+// Cargar con timestamp para evitar caché
+const ts = Date.now();
+fetch('master-security-completo.html?v=' + ts)
+  .then(r => r.text())
+  .then(html => {
+    document.open();
+    document.write(html);
+    document.close();
+  })
+  .catch(e => {
+    // Si fetch falla, redirigir directamente
+    window.location.href = 'master-security-completo.html?v=' + ts;
+  });
+</script>
 </body>
 </html>
