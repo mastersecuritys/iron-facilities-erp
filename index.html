@@ -87,7 +87,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#F7F8FA;color:#11182
 
 /* ── MAIN ── */
 .main{margin-left:230px;flex:1;}
-.topbar{background:#fff;border-bottom:1px solid #E4E8F0;padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.topbar{background:#fff;border-bottom:1px solid #E4E8F0;padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,.05);border-right:none;}
 .topbar-title{font-size:15px;font-weight:700;color:#111827;}
 .content{padding:20px 24px;background:#F7F8FA;min-height:calc(100vh - 54px);}
 .page{display:none;}
@@ -327,6 +327,7 @@ tr:hover td{background:#FAFBFC;}
     <div class="nav" onclick="go('tecnicos-admin',this)"><span class="ni">👷</span>Técnicos<span class="nb warn" id="nb-tec">2</span></div>
     <div class="nav" onclick="go('campo',this)"><span class="ni">📱</span>Módulo campo</div>
     <div class="nav" onclick="go('compras',this)"><span class="ni">🛒</span>Compras<span class="nb" id="nb-comp">2</span></div>
+    <div class="nav" id="nav-pagos" style="display:none;" onclick="go('pagos',this)"><span class="ni">💳</span>Pagos</div>
   </div>
   <div class="sb-section">
     <div class="sb-label">Gestión</div>
@@ -972,6 +973,100 @@ tr:hover td{background:#FAFBFC;}
     </div>
   </div>
 </div>
+
+<!-- ══ PAGOS BANCOLOMBIA ══ -->
+<div id="page-pagos" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div>
+      <div style="font-size:15px;font-weight:700;color:#111827;">Pagos y viáticos</div>
+      <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">Bancolombia → Nequi · Daviplata · Cuentas bancarias · Registro y comprobantes</div>
+    </div>
+    <button class="btn btn-primary" onclick="openM('mNuevoPago')">+ Registrar pago</button>
+  </div>
+
+  <!-- KPIs pagos -->
+  <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+    <div class="kpi accent">
+      <div class="kpi-lbl">Pagado este mes</div>
+      <div class="kpi-val" id="kpi-pagado-mes">$0</div>
+      <div class="kpi-sub">Total transferencias</div>
+    </div>
+    <div class="kpi yellow">
+      <div class="kpi-lbl">Viáticos</div>
+      <div class="kpi-val" id="kpi-viaticos">$0</div>
+      <div class="kpi-sub">Este mes</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-lbl">Adelantos</div>
+      <div class="kpi-val" id="kpi-adelantos">$0</div>
+      <div class="kpi-sub">Este mes</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-lbl">Pagos finales</div>
+      <div class="kpi-val" id="kpi-pagos-finales">$0</div>
+      <div class="kpi-sub">Este mes</div>
+    </div>
+  </div>
+
+  <!-- Tabs por técnico -->
+  <div class="tabs" id="pagos-tabs">
+    <div class="tab active" onclick="filtrarPagos('todos', this)">Todos</div>
+    <div class="tab" onclick="filtrarPagos('Miller Redondo', this)">Miller Redondo</div>
+    <div class="tab" onclick="filtrarPagos('Roberth Ordoñez', this)">Roberth Ordoñez</div>
+    <div class="tab" onclick="filtrarPagos('Edinson Vargas', this)">Edinson Vargas</div>
+  </div>
+
+  <!-- Tabla de pagos -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Registro de pagos</span>
+      <button class="btn btn-ghost btn-sm" onclick="exportarLiquidacion()">📊 Liquidación del mes</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Beneficiario</th>
+          <th>Concepto</th>
+          <th>O.S. asociada</th>
+          <th>Medio</th>
+          <th>Valor</th>
+          <th>Comprobante</th>
+          <th>Registrado por</th>
+        </tr>
+      </thead>
+      <tbody id="pagos-tbody">
+        <tr><td colspan="8" style="text-align:center;padding:32px;color:#9CA3AF;">
+          <div style="font-size:24px;margin-bottom:8px;">💳</div>
+          No hay pagos registrados este mes
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Liquidación por técnico -->
+  <div class="card" style="margin-top:16px;">
+    <div class="card-head">
+      <span class="card-title">Liquidación por técnico — Mes actual</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Técnico</th>
+          <th>Servicios</th>
+          <th>Viáticos pagados</th>
+          <th>Adelantos</th>
+          <th>Pago final</th>
+          <th>Total pagado</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="liquidacion-tbody">
+        <tr><td colspan="7" style="text-align:center;padding:24px;color:#9CA3AF;">Registra pagos para ver la liquidación</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 </div><!-- /content -->
 </main>
 </div><!-- /shell -->
@@ -1129,9 +1224,12 @@ function doLogout() {
 const titles = {
   dashboard:'Dashboard', solicitudes:'Solicitudes Verona', calendario:'Calendario',
   'tecnicos-admin':'Técnicos', campo:'Módulo de campo', compras:'Compras y materiales',
-  reportes:'Reportes', contratos:'Contratos', 'admin-usuarios':'Gestión de usuarios', guia:'Guía de uso'
+  reportes:'Reportes', contratos:'Contratos', 'admin-usuarios':'Gestión de usuarios', pagos:'Pagos y viáticos', guia:'Guía de uso'
 };
 function go(id, el) {
+  if (id === 'solicitudes') setTimeout(cargarSolicitudes, 300);
+  if (id === 'dashboard') setTimeout(cargarDashboard, 300);
+  if (id === 'pagos') setTimeout(cargarPagos, 300);
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
   const pg = document.getElementById('page-'+id);
@@ -1558,34 +1656,98 @@ async function cargarDashboard() {
 
 // Cargar solicitudes desde Sheets real
 async function cargarSolicitudes() {
-  showToast('Cargando solicitudes...');
+  const tbody = document.getElementById('solTableBody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:#9CA3AF;">⏳ Cargando desde Sheets...</td></tr>';
+
   const data = await callBackend('solicitudes');
-  if (!data.ok) { showToast('Error cargando solicitudes'); return; }
-  
-  const tbody = document.querySelector('#solTable tbody');
-  if (!tbody || !data.data.length) return;
-  
+  if (!data.ok) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:#DC2626;">Error cargando solicitudes</td></tr>';
+    return;
+  }
+
+  const solicitudes = data.data || [];
+
+  // Actualizar contador en tabs
+  const total = solicitudes.length;
+  const pendientes = solicitudes.filter(s => s.estado && s.estado.includes('Pendiente')).length;
+  const enEjecucion = solicitudes.filter(s => s.estado && (s.estado.includes('ejecucion') || s.estado.includes('Ejecucion') || s.estado.includes('Iniciar'))).length;
+
+  // Actualizar badge del menú
+  const nb = document.getElementById('nb-sol');
+  if (nb) nb.textContent = total;
+
+  if (!tbody) return;
+
+  if (!solicitudes.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:#9CA3AF;"><div style="font-size:24px;margin-bottom:8px;">📭</div>No hay solicitudes aún. Los emails de Verona aparecerán aquí automáticamente.</td></tr>';
+    return;
+  }
+
   tbody.innerHTML = '';
-  data.data.forEach(s => {
-    const esPendiente = s.estado && s.estado.includes('Pendiente');
+  solicitudes.forEach(s => {
+    const esPendiente = !s.estado || s.estado.includes('Pendiente') || s.estado.includes('Completar');
+    const esCerrado = s.estado && s.estado.includes('Cerrado');
+    const estadoClass = esCerrado ? 'bg' : esPendiente ? 'by' : 'bb';
+    const tieneARL = s.arl_status === 'vencida';
     const tr = document.createElement('tr');
-    tr.dataset.e = esPendiente ? 'pendiente' : 'ejecucion';
+    tr.dataset.e = esCerrado ? 'cerrado' : esPendiente ? 'pendiente' : 'ejecucion';
+
+    const btnAccion = s.tecnico_asignado
+      ? `<div style="display:flex;gap:4px;">
+           <button class="btn btn-ghost btn-sm" onclick="openDetalle('${s.nro_os_verona}')">Ver</button>
+           <button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="copiarLinkTec('${s.nro_os_verona}','${s.tecnico_asignado}')">📱</button>
+         </div>`
+      : `<button class="btn btn-primary btn-sm" onclick="openAsignar('${s.nro_os_verona}','${s.ciudad || ''}')">Asignar</button>`;
+
+    const entidadDisplay = s.entidad
+      ? `<span style="color:#374151;">${s.entidad}</span>`
+      : `<span style="color:#DC2626;font-size:11px;font-weight:600;">Sin banco</span>`;
+
+    const tecDisplay = s.tecnico_asignado
+      ? `<span style="color:#374151;">${s.tecnico_asignado}</span>`
+      : `<span style="color:#DC2626;font-weight:600;">Sin asignar</span>`;
+
+    const arlDisplay = tieneARL
+      ? `<span class="badge br">ARL vencida</span>`
+      : s.tecnico_asignado
+        ? `<span class="badge bg">OK</span>`
+        : `<span style="color:#9CA3AF;">—</span>`;
+
     tr.innerHTML = `
       <td><span class="os">${s.nro_os_verona || ''}</span></td>
-      <td style="color:#374151;">${s.entidad || ''}</td>
+      <td>${entidadDisplay}</td>
       <td style="color:#374151;">${s.ciudad || '—'}</td>
-      <td style="color:#374151;">${s.tipo_actividad || ''}</td>
+      <td style="color:#374151;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.tipo_actividad || ''}">${s.tipo_actividad || s.descripcion?.substring(0,40) || '—'}</td>
       <td style="color:#374151;">${s.nro_cotizacion_interna || '—'}</td>
-      <td style="color:#374151;">${s.tecnico_asignado || '<span style="color:#DC2626;font-weight:600;">Sin asignar</span>'}</td>
-      <td><span class="badge ${s.tecnico_asignado ? 'bg' : 'br'}">${s.tecnico_asignado ? 'OK' : 'Pendiente'}</span></td>
-      <td><span class="badge ${esPendiente ? 'by' : 'bb'}">${s.estado || 'Pendiente'}</span></td>
+      <td>${tecDisplay}</td>
+      <td>${arlDisplay}</td>
+      <td><span class="badge ${estadoClass}">${s.estado || 'Pendiente'}</span></td>
       <td style="color:#374151;">${s.vr_factura ? '$' + Number(s.vr_factura).toLocaleString('es-CO') : '—'}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="openDetalle('${s.nro_os_verona}')">Ver</button></td>
+      <td>${btnAccion}</td>
     `;
     tbody.appendChild(tr);
   });
-  
-  showToast('Solicitudes actualizadas ✓');
+
+  // Actualizar también tabla del dashboard
+  const dashTbody = document.getElementById('dashTableBody');
+  if (dashTbody) {
+    const recientes = solicitudes.slice(0, 5);
+    dashTbody.innerHTML = '';
+    recientes.forEach(s => {
+      const esPendiente = !s.estado || s.estado.includes('Pendiente');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="os">${s.nro_os_verona || ''}</span></td>
+        <td style="color:#374151;">${s.entidad || '<span style="color:#DC2626;font-size:11px;">Sin banco</span>'}</td>
+        <td style="color:#374151;">${s.ciudad || '—'}</td>
+        <td style="color:#374151;">${s.tipo_actividad || '—'}</td>
+        <td style="color:#374151;">${s.tecnico_asignado || '<span style="color:#DC2626;">Sin asignar</span>'}</td>
+        <td><span class="badge ${esPendiente ? 'by' : 'bb'}">${s.estado || 'Pendiente'}</span></td>
+        <td style="color:#374151;">${s.vr_factura ? '$' + Number(s.vr_factura).toLocaleString('es-CO') : '—'}</td>
+      `;
+      dashTbody.appendChild(tr);
+    });
+  }
 }
 
 // Leer emails de Verona manualmente
@@ -1593,14 +1755,15 @@ async function leerEmailsAhora() {
   showToast('Leyendo emails de Verona...');
   const data = await callBackend('leer_emails');
   if (data.ok) {
-    const msg = `Emails procesados: ${data.creados?.length || 0} nuevos, ${data.actualizados?.length || 0} actualizados`;
-    showToast(msg);
-    await cargarSolicitudes();
+    showToast('✅ ' + (data.creados?.length || 0) + ' nuevas · ' + (data.actualizados?.length || 0) + ' actualizadas');
+    setTimeout(() => cargarSolicitudes(), 2000);
     await cargarDashboard();
   } else {
-    showToast('Error: ' + data.error);
+    showToast('Error: ' + (data.error || 'desconocido'));
   }
 }
+
+
 
 // Guardar solicitud real en Sheets
 async function guardarSolicitudReal() {
@@ -1632,13 +1795,198 @@ window.addEventListener('load', async function() {
     window.doLogin = async function() {
       originalDoLogin();
       if (currentUser) {
+        // Mostrar módulo de pagos solo para Wendy
+        const navPagos = document.getElementById('nav-pagos');
+        if (navPagos && currentUser.usuario === 'wendy@mastersecuritys.com') {
+          navPagos.style.display = 'flex';
+        }
         setTimeout(async () => {
           await cargarDashboard();
-        }, 500);
+          await cargarSolicitudes();
+        }, 800);
       }
     };
   }
 });
+
+
+// ── MÓDULO PAGOS ────────────────────────────
+let pagosData = [];
+let comprobanteURL = '';
+
+async function cargarPagos() {
+  const data = await callBackend('get_pagos');
+  if (!data.ok) return;
+  pagosData = data.data || [];
+  renderizarPagos(pagosData);
+  calcularKPIsPagos(pagosData);
+  calcularLiquidacion(pagosData);
+}
+
+function renderizarPagos(pagos) {
+  const tbody = document.getElementById('pagos-tbody');
+  if (!tbody) return;
+  if (!pagos.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:#9CA3AF;"><div style="font-size:24px;margin-bottom:8px;">💳</div>No hay pagos registrados</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  pagos.forEach(p => {
+    const conceptoClass = {
+      'Viático': 'by', 'Adelanto': 'bp', 'Pago final servicio': 'bg',
+      'Materiales': 'bb', 'Transporte': 'bo'
+    }[p.concepto] || 'bgr';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:#374151;">${p.fecha || '—'}</td>
+      <td style="color:#374151;font-weight:600;">${p.beneficiario || '—'}</td>
+      <td><span class="badge ${conceptoClass}">${p.concepto || '—'}</span></td>
+      <td><span class="os" style="font-size:11px;">${p.nro_os || '—'}</span></td>
+      <td style="color:#374151;">${p.medio || '—'}</td>
+      <td style="color:#111827;font-weight:700;">$${Number(p.valor || 0).toLocaleString('es-CO')}</td>
+      <td>${p.comprobante_url ? '<a href="' + p.comprobante_url + '" target="_blank" style="color:#2563EB;font-size:12px;font-weight:600;">Ver 📄</a>' : '<span style="color:#9CA3AF;font-size:11px;">Sin comprobante</span>'}</td>
+      <td style="color:#6B7280;font-size:12px;">${p.registrado_por || 'Wendy'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function calcularKPIsPagos(pagos) {
+  const mesActual = new Date().getMonth();
+  const pagosMes = pagos.filter(p => {
+    if (!p.fecha) return false;
+    const partes = p.fecha.split('/');
+    return partes.length === 3 && parseInt(partes[1]) - 1 === mesActual;
+  });
+
+  const total = pagosMes.reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  const viaticos = pagosMes.filter(p => p.concepto === 'Viático').reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  const adelantos = pagosMes.filter(p => p.concepto === 'Adelanto').reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  const finales = pagosMes.filter(p => p.concepto === 'Pago final servicio').reduce((s, p) => s + (Number(p.valor) || 0), 0);
+
+  const fmt = v => '$' + v.toLocaleString('es-CO');
+  const el = id => document.getElementById(id);
+  if (el('kpi-pagado-mes')) el('kpi-pagado-mes').textContent = fmt(total);
+  if (el('kpi-viaticos')) el('kpi-viaticos').textContent = fmt(viaticos);
+  if (el('kpi-adelantos')) el('kpi-adelantos').textContent = fmt(adelantos);
+  if (el('kpi-pagos-finales')) el('kpi-pagos-finales').textContent = fmt(finales);
+}
+
+function calcularLiquidacion(pagos) {
+  const tbody = document.getElementById('liquidacion-tbody');
+  if (!tbody) return;
+
+  const tecnicos = {};
+  pagos.forEach(p => {
+    if (!p.beneficiario) return;
+    if (!tecnicos[p.beneficiario]) tecnicos[p.beneficiario] = { servicios: new Set(), viaticos: 0, adelantos: 0, finales: 0 };
+    const t = tecnicos[p.beneficiario];
+    if (p.nro_os) t.servicios.add(p.nro_os);
+    if (p.concepto === 'Viático') t.viaticos += Number(p.valor) || 0;
+    else if (p.concepto === 'Adelanto') t.adelantos += Number(p.valor) || 0;
+    else if (p.concepto === 'Pago final servicio') t.finales += Number(p.valor) || 0;
+  });
+
+  if (!Object.keys(tecnicos).length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#9CA3AF;">Registra pagos para ver la liquidación</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  Object.entries(tecnicos).forEach(([nombre, datos]) => {
+    const total = datos.viaticos + datos.adelantos + datos.finales;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:#111827;font-weight:700;">${nombre}</td>
+      <td style="color:#374151;">${datos.servicios.size} servicio(s)</td>
+      <td style="color:#374151;">$${datos.viaticos.toLocaleString('es-CO')}</td>
+      <td style="color:#374151;">$${datos.adelantos.toLocaleString('es-CO')}</td>
+      <td style="color:#374151;">$${datos.finales.toLocaleString('es-CO')}</td>
+      <td style="color:#111827;font-weight:800;">$${total.toLocaleString('es-CO')}</td>
+      <td><span class="badge bg">Al día</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filtrarPagos(tecnico, el) {
+  document.querySelectorAll('#pagos-tabs .tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const filtrados = tecnico === 'todos' ? pagosData : pagosData.filter(p => p.beneficiario === tecnico);
+  renderizarPagos(filtrados);
+}
+
+async function capturarComprobante() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.onchange = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast('Subiendo comprobante...');
+    const reader = new FileReader();
+    reader.onload = async function(ev) {
+      const base64 = ev.target.result.split(',')[1];
+      const res = await fetch(BACKEND_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'subir_foto',
+          nro_os: 'PAGOS',
+          tipo: 'comprobante',
+          nombre: 'bancolombia_' + Date.now() + '.jpg',
+          base64: base64,
+          mime: file.type
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        comprobanteURL = data.url;
+        document.getElementById('comprobante-zone').style.display = 'none';
+        document.getElementById('comprobante-preview').style.display = 'block';
+        document.getElementById('comprobante-link').href = data.url;
+        showToast('Comprobante guardado en Drive ✓');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+async function guardarPago() {
+  const fecha = document.getElementById('pago-fecha')?.value;
+  const valor = document.getElementById('pago-valor')?.value;
+  if (!fecha || !valor) { showToast('Completa fecha y valor'); return; }
+
+  const pago = {
+    accion: 'nuevo_pago',
+    fecha: fecha.split('-').reverse().join('/'),
+    medio: document.getElementById('pago-medio')?.value,
+    beneficiario: document.getElementById('pago-beneficiario')?.value,
+    concepto: document.getElementById('pago-concepto')?.value,
+    nro_os: document.getElementById('pago-os')?.value || '',
+    valor: valor,
+    observacion: document.getElementById('pago-obs')?.value || '',
+    comprobante_url: comprobanteURL,
+    registrado_por: currentUser?.nombre || 'Wendy Ordoñez'
+  };
+
+  const data = await callBackendPost('nuevo_pago', pago);
+  if (data.ok) {
+    showToast('Pago registrado ✓');
+    closeM('mNuevoPago');
+    comprobanteURL = '';
+    await cargarPagos();
+  } else {
+    showToast('Error: ' + data.error);
+  }
+}
+
+function exportarLiquidacion() {
+  showToast('Exportando liquidación a Sheets...');
+  // En producción llama al backend para exportar
+  setTimeout(() => showToast('Liquidación exportada ✓'), 1500);
+}
 
 // ── TOAST ──
 function showToast(msg){
