@@ -1593,7 +1593,7 @@ function copiarOS() {
 
 
 // ── CONEXIÓN CON APPS SCRIPT (BACKEND) ──────────────
-const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbzHy6-oyOmvmtNcTYAe5O1L9pcI8ZcMLofoXNojkeEgodRgVuYn3QJMUBe6EnaPm48lsQ/exec';
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbztuHixlNfaHaHKLvzpYnA63vV8QD426f7xjtsKVIh0Xq7qI94aB-wRKtJ7cCTQqX-BYg/exec';
 
 // Llamada al backend via JSONP para evitar CORS con Apps Script
 function callBackend(accion, params = {}) {
@@ -1737,9 +1737,12 @@ async function cargarSolicitudes() {
       .trim()
       .substring(0, 50) || s.tipo_mantenimiento || '—';
 
+    // Guardar solicitud en dataset para acceso seguro
+    const osId = s.nro_os_verona || '';
+    const tecId = (s.tecnico_asignado || '').replace(/'/g, "\'");
     const btnAccion = `<div style="display:flex;gap:4px;">
-           <button class="btn btn-ghost btn-sm" onclick="openDetalle('${s.nro_os_verona}')">Ver</button>
-           ${s.tecnico_asignado ? `<button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;padding:5px 8px;" onclick="copiarLinkTec('${s.nro_os_verona}','${s.tecnico_asignado}')">📱</button>` : ''}
+           <button class="btn btn-ghost btn-sm" data-os="${osId}" onclick="openDetalleBtn(this)">Ver</button>
+           ${s.tecnico_asignado ? `<button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;padding:5px 8px;" data-os="${osId}" data-tec="${tecId}" onclick="copiarLinkTecBtn(this)">📱</button>` : ''}
          </div>`;
 
     const entidadDisplay = s.entidad
@@ -1748,7 +1751,7 @@ async function cargarSolicitudes() {
 
     const tecDisplay = s.tecnico_asignado
       ? `<span style="color:#374151;">${s.tecnico_asignado}</span>`
-      : `<button class="btn btn-primary btn-sm" onclick="openAsignar('${s.nro_os_verona}','${s.ciudad || ''}')">Asignar</button>`;
+      : `<button class="btn btn-primary btn-sm" data-os="${osId}" data-ciudad="${s.ciudad || ''}" onclick="asignarBtn(this)">Asignar</button>`;
 
     const arlDisplay = tieneARL
       ? `<span class="badge br">ARL vencida</span>`
@@ -1997,31 +2000,46 @@ async function capturarComprobante() {
 }
 
 async function guardarPago() {
-  const fecha = document.getElementById('pago-fecha')?.value;
-  const valor = document.getElementById('pago-valor')?.value;
-  if (!fecha || !valor) { showToast('Completa fecha y valor'); return; }
+  const fechaEl = document.getElementById('pago-fecha');
+  const valorEl = document.getElementById('pago-valor');
+  const fecha = fechaEl ? fechaEl.value : '';
+  const valor = valorEl ? valorEl.value : '';
+
+  if (!fecha) { showToast('Selecciona la fecha del pago'); return; }
+  if (!valor || parseFloat(valor) <= 0) { showToast('Ingresa el valor del pago'); return; }
+
+  const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
 
   const pago = {
-    accion: 'nuevo_pago',
     fecha: fecha.split('-').reverse().join('/'),
-    medio: document.getElementById('pago-medio')?.value,
-    beneficiario: document.getElementById('pago-beneficiario')?.value,
-    concepto: document.getElementById('pago-concepto')?.value,
-    nro_os: document.getElementById('pago-os')?.value || '',
+    medio: get('pago-medio'),
+    beneficiario: get('pago-beneficiario'),
+    concepto: get('pago-concepto'),
+    nro_os: get('pago-os'),
     valor: valor,
-    observacion: document.getElementById('pago-obs')?.value || '',
-    comprobante_url: comprobanteURL,
-    registrado_por: currentUser?.nombre || 'Wendy Ordoñez'
+    observacion: get('pago-obs'),
+    comprobante_url: comprobanteURL || '',
+    registrado_por: currentUser ? currentUser.nombre : 'Wendy Ordoñez'
   };
 
-  const data = await callBackendPost('nuevo_pago', pago);
+  showToast('Guardando pago...');
+  const data = await callBackend('nuevo_pago', pago);
   if (data.ok) {
-    showToast('Pago registrado ✓');
+    showToast('✅ Pago de $' + Number(valor).toLocaleString('es-CO') + ' registrado');
     closeM('mNuevoPago');
     comprobanteURL = '';
+    // Limpiar formulario
+    if (fechaEl) fechaEl.value = '';
+    if (valorEl) valorEl.value = '';
+    const obsEl = document.getElementById('pago-obs');
+    if (obsEl) obsEl.value = '';
+    const osEl = document.getElementById('pago-os');
+    if (osEl) osEl.value = '';
+    document.getElementById('comprobante-zone').style.display = 'block';
+    document.getElementById('comprobante-preview').style.display = 'none';
     await cargarPagos();
   } else {
-    showToast('Error: ' + data.error);
+    showToast('Error guardando pago: ' + (data.error || 'desconocido'));
   }
 }
 
@@ -2029,6 +2047,23 @@ function exportarLiquidacion() {
   showToast('Exportando liquidación a Sheets...');
   // En producción llama al backend para exportar
   setTimeout(() => showToast('Liquidación exportada ✓'), 1500);
+}
+
+
+// Wrappers seguros para evitar problemas con comillas en onclick
+function openDetalleBtn(btn) {
+  const os = btn.getAttribute('data-os');
+  if (os) openDetalle(os);
+}
+function copiarLinkTecBtn(btn) {
+  const os = btn.getAttribute('data-os');
+  const tec = btn.getAttribute('data-tec');
+  if (os && tec) copiarLinkTec(os, tec);
+}
+function asignarBtn(btn) {
+  const os = btn.getAttribute('data-os');
+  const ciudad = btn.getAttribute('data-ciudad') || '';
+  if (os) openAsignar(os, ciudad);
 }
 
 // ── TOAST ──
