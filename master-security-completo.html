@@ -1244,11 +1244,83 @@ function closeM(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
 
 // ── SOLICITUDES ──
-function filtSol(tipo,el){
-  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
-  if(el)el.classList.add('active');
-  document.querySelectorAll('#solTable tbody tr').forEach(r=>{
-    r.style.display=(tipo==='todas'||r.dataset.e===tipo)?'':'none';
+// Datos globales de solicitudes
+let _todasSolicitudes = [];
+
+function filtSol(tipo, el) {
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  let filtradas = _todasSolicitudes;
+  if (tipo === 'pendiente') {
+    filtradas = _todasSolicitudes.filter(s => !s.estado || s.estado.includes('Pendiente') || s.estado.includes('Completar'));
+  } else if (tipo === 'ejecucion') {
+    filtradas = _todasSolicitudes.filter(s => s.estado && (
+      s.estado.includes('ejecucion') || s.estado.includes('Ejecucion') ||
+      s.estado.includes('Iniciar') || s.estado.includes('aprobada') ||
+      s.estado.includes('liquidacion')
+    ));
+  } else if (tipo === 'cerrado') {
+    filtradas = _todasSolicitudes.filter(s => s.estado && s.estado.includes('Cerrado'));
+  }
+  renderizarFilas(filtradas);
+}
+
+function renderizarFilas(solicitudes) {
+  const tbody = document.getElementById('solTableBody');
+  if (!tbody) return;
+  if (!solicitudes.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:#9CA3AF;">No hay solicitudes en esta categoría</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  solicitudes.forEach(s => {
+    const esCerrado = s.estado && s.estado.includes('Cerrado');
+    const esPendiente = !s.estado || s.estado.includes('Pendiente') || s.estado.includes('Completar');
+    const estadoClass = esCerrado ? 'bg' : esPendiente ? 'by' : 'bb';
+    const tieneARL = s.arl_status === 'vencida';
+    const osId = s.nro_os_verona || '';
+
+    const actividadRaw = s.tipo_actividad || s.descripcion || '';
+    const actividad = actividadRaw
+      .replace(/<[^>]*>/g, '')
+      .replace(/Tipo de mantenimiento[^]*/i, '')
+      .replace(/Tipo de activo[^]*/i, '')
+      .replace(/\s+/g, ' ').trim().substring(0, 50)
+      || s.tipo_mantenimiento || '—';
+
+    const entidadDisplay = s.entidad
+      ? s.entidad
+      : '<span style="color:#DC2626;font-size:11px;font-weight:600;">Sin banco</span>';
+
+    const tecDisplay = s.tecnico_asignado
+      ? s.tecnico_asignado
+      : '<span style="color:#DC2626;font-weight:600;">Sin asignar</span>';
+
+    const arlDisplay = tieneARL
+      ? '<span class="badge br">ARL vencida</span>'
+      : s.tecnico_asignado ? '<span class="badge bg">OK</span>' : '—';
+
+    const btnAccion = '<div style="display:flex;gap:4px;">'
+      + '<button class="btn btn-ghost btn-sm" data-os="' + osId + '" onclick="openDetalleBtn(this)">Ver</button>'
+      + (s.tecnico_asignado
+          ? '<button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;padding:5px 8px;" data-os="' + osId + '" data-tec="' + (s.tecnico_asignado||'') + '" onclick="copiarLinkTecBtn(this)">📱</button>'
+          : '<button class="btn btn-primary btn-sm" data-os="' + osId + '" data-ciudad="' + (s.ciudad||'') + '" onclick="asignarBtn(this)">Asignar</button>')
+      + '</div>';
+
+    const tr = document.createElement('tr');
+    tr.dataset.e = esCerrado ? 'cerrado' : esPendiente ? 'pendiente' : 'ejecucion';
+    tr.innerHTML = '<td><span class="os">' + osId + '</span></td>'
+      + '<td style="color:#374151;">' + entidadDisplay + '</td>'
+      + '<td style="color:#374151;">' + (s.ciudad||'—') + '</td>'
+      + '<td style="color:#374151;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + actividadRaw + '">' + actividad + '</td>'
+      + '<td style="color:#374151;">' + (s.nro_cotizacion_interna||'—') + '</td>'
+      + '<td style="color:#374151;">' + tecDisplay + '</td>'
+      + '<td>' + arlDisplay + '</td>'
+      + '<td><span class="badge ' + estadoClass + '">' + (s.estado||'Pendiente') + '</span></td>'
+      + '<td style="color:#374151;">' + (s.vr_factura ? '$' + Number(s.vr_factura).toLocaleString('es-CO') : '—') + '</td>'
+      + '<td>' + btnAccion + '</td>';
+    tbody.appendChild(tr);
   });
 }
 function filtSolSearch(){
@@ -1715,64 +1787,8 @@ async function cargarSolicitudes() {
     return;
   }
 
-  tbody.innerHTML = '';
-  solicitudes.forEach(s => {
-    const esPendiente = !s.estado || s.estado.includes('Pendiente') || s.estado.includes('Completar');
-    const esCerrado = s.estado && s.estado.includes('Cerrado');
-    const estadoClass = esCerrado ? 'bg' : esPendiente ? 'by' : 'bb';
-    const tieneARL = s.arl_status === 'vencida';
-    const tr = document.createElement('tr');
-    tr.dataset.e = esCerrado ? 'cerrado' : esPendiente ? 'pendiente' : 'ejecucion';
-
-    // Limpiar y formatear descripción
-    const actividadRaw = s.tipo_actividad || s.descripcion || '';
-    // Quitar "Tipo de mante..." y similares residuales
-    const actividad = actividadRaw
-      .replace(/Tipo de mantenimiento.*/i, '')
-      .replace(/Tipo de activo.*/i, '')
-      .replace(/Locativo\s*/i, '')
-      .replace(/Oficina\s*/i, '')
-      .replace(/Otros\s*/i, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .substring(0, 50) || s.tipo_mantenimiento || '—';
-
-    // Guardar solicitud en dataset para acceso seguro
-    const osId = s.nro_os_verona || '';
-    const tecId = (s.tecnico_asignado || '').replace(/'/g, "\'");
-    const btnAccion = `<div style="display:flex;gap:4px;">
-           <button class="btn btn-ghost btn-sm" data-os="${osId}" onclick="openDetalleBtn(this)">Ver</button>
-           ${s.tecnico_asignado ? `<button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;padding:5px 8px;" data-os="${osId}" data-tec="${tecId}" onclick="copiarLinkTecBtn(this)">📱</button>` : ''}
-         </div>`;
-
-    const entidadDisplay = s.entidad
-      ? `<span style="color:#374151;">${s.entidad}</span>`
-      : `<span style="color:#DC2626;font-size:11px;font-weight:600;">Sin banco</span>`;
-
-    const tecDisplay = s.tecnico_asignado
-      ? `<span style="color:#374151;">${s.tecnico_asignado}</span>`
-      : `<button class="btn btn-primary btn-sm" data-os="${osId}" data-ciudad="${s.ciudad || ''}" onclick="asignarBtn(this)">Asignar</button>`;
-
-    const arlDisplay = tieneARL
-      ? `<span class="badge br">ARL vencida</span>`
-      : s.tecnico_asignado
-        ? `<span class="badge bg">OK</span>`
-        : `<span style="color:#9CA3AF;">—</span>`;
-
-    tr.innerHTML = `
-      <td><span class="os">${s.nro_os_verona || ''}</span></td>
-      <td>${entidadDisplay}</td>
-      <td style="color:#374151;">${s.ciudad || '—'}</td>
-      <td style="color:#374151;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${actividadRaw}">${actividad}</td>
-      <td style="color:#374151;">${s.nro_cotizacion_interna || '—'}</td>
-      <td>${tecDisplay}</td>
-      <td>${arlDisplay}</td>
-      <td><span class="badge ${estadoClass}">${s.estado || 'Pendiente'}</span></td>
-      <td style="color:#374151;">${s.vr_factura ? '$' + Number(s.vr_factura).toLocaleString('es-CO') : '—'}</td>
-      <td>${btnAccion}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  // Renderizar usando función global
+  renderizarFilas(solicitudes);
 
   // Actualizar también tabla del dashboard
   const dashTbody = document.getElementById('dashTableBody');
@@ -2064,6 +2080,87 @@ function asignarBtn(btn) {
   const os = btn.getAttribute('data-os');
   const ciudad = btn.getAttribute('data-ciudad') || '';
   if (os) openAsignar(os, ciudad);
+}
+
+
+async function guardarDetalle() {
+  const os = window._detalleOS;
+  if (!os) { showToast('Error: no hay OS seleccionada'); return; }
+  const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const params = {
+    nro_os: os,
+    entidad: get('det-entidad'),
+    ciudad: get('det-ciudad'),
+    regional: get('det-regional'),
+    cod_sede: get('det-cod_sede'),
+    nombre_sede: get('det-nombre_sede'),
+    tipo_mantenimiento: get('det-tipo_mantenimiento'),
+    nro_cotizacion_interna: get('det-nro_cotizacion_interna'),
+    nro_orden_compra: get('det-nro_orden_compra'),
+    tecnico_asignado: get('det-tecnico_asignado'),
+    fecha_programada: get('det-fecha_programada'),
+    vr_factura: get('det-vr_factura'),
+    costo_material: get('det-costo_material'),
+    gasto_operacion: get('det-gasto_operacion'),
+    costo_mano_obra: get('det-costo_mano_obra'),
+    nro_factura: get('det-nro_factura'),
+    observacion: get('det-observacion'),
+    descripcion: get('det-descripcion'),
+    estado: get('det-estado-sel') || undefined
+  };
+  showToast('Guardando...');
+  const data = await callBackend('actualizar', params);
+  if (data.ok) {
+    showToast('✅ Solicitud actualizada en Sheets');
+    closeM('mDetalle');
+    setTimeout(cargarSolicitudes, 1000);
+  } else {
+    showToast('Error: ' + (data.error || 'desconocido'));
+  }
+}
+
+async function cerrarServicio() {
+  const os = window._detalleOS;
+  if (!os) return;
+  const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const vr = parseFloat(get('det-vr_factura')) || 0;
+  if (!vr) { showToast('⚠️ Ingresa el valor de la factura antes de cerrar'); return; }
+  if (!confirm('¿Cerrar el servicio ' + os + '?\nSe calcularán retenciones y se actualizará el Sheet.')) return;
+  const rf = Math.round(vr * 0.04);
+  const ri = Math.round(vr * 0.01);
+  const ant = Math.round(vr * 0.025);
+  const costos = (parseFloat(get('det-costo_material'))||0) + (parseFloat(get('det-gasto_operacion'))||0) + (parseFloat(get('det-costo_mano_obra'))||0);
+  const neto = vr - rf - ri - ant;
+  const utilidad = neto - costos;
+  const pct = vr > 0 ? Math.round((utilidad/vr)*100) : 0;
+  showToast('Cerrando servicio...');
+  const data = await callBackend('actualizar', {
+    nro_os: os, estado: 'Cerrado',
+    vr_factura: vr, costo_material: get('det-costo_material'),
+    gasto_operacion: get('det-gasto_operacion'), costo_mano_obra: get('det-costo_mano_obra'),
+    nro_factura: get('det-nro_factura'), retefuente: rf, reteica: ri,
+    anticipo_renta: ant, utilidad_neta: utilidad, pct_utilidad: pct + '%',
+    tecnico_asignado: get('det-tecnico_asignado'), entidad: get('det-entidad'),
+    ciudad: get('det-ciudad'), nombre_sede: get('det-nombre_sede'),
+    fecha_atencion: new Date().toLocaleDateString('es-CO')
+  });
+  if (data.ok) {
+    showToast('✅ ' + os + ' cerrado | Neto: $' + Math.round(neto).toLocaleString('es-CO') + ' | Utilidad: ' + pct + '%');
+    closeM('mDetalle');
+    setTimeout(cargarSolicitudes, 1500);
+  } else {
+    showToast('Error: ' + (data.error||'desconocido'));
+  }
+}
+
+function calcularRetencionesDetalle(vr) {
+  const v = parseFloat(String(vr).replace(/[^0-9.]/g,'')) || 0;
+  const fmt = n => '$' + Math.round(n).toLocaleString('es-CO');
+  const set = (id,val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('det-retefuente', fmt(v*0.04));
+  set('det-reteica', fmt(v*0.01));
+  set('det-anticipo', fmt(v*0.025));
+  set('det-neto', fmt(v - v*0.04 - v*0.01 - v*0.025));
 }
 
 // ── TOAST ──
