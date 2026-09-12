@@ -435,12 +435,12 @@ tr:hover td{background:#FAFBFC;}
     </div>
     <table id="solTable">
       <thead><tr><th>O.S. Verona</th><th>Banco</th><th>Ciudad</th><th>Actividad</th><th>Cot. interna</th><th>Técnico</th><th>ARL</th><th>Estado</th><th>Valor</th><th></th></tr></thead>
-      <tbody>
-        <tr data-e="ejecucion"><td><span class="os">FMM-6004-2026</span></td><td>Banco de Occidente</td><td>Valledupar</td><td>Cielo rasos / Techos</td><td>PRE092026</td><td>Miller Redondo</td><td><span class="badge bg">OK</span></td><td><span class="badge bb">En ejecución</span></td><td>$467.187</td><td style="display:flex;gap:4px;"><button class="btn btn-ghost btn-sm" onclick="openDetalle('FMM-6004-2026')">Ver</button><button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="copiarLinkTec('FMM-6004-2026','Miller Redondo')">📱</button></td></tr>
-        <tr data-e="pendiente"><td><span class="os">FMM-6069-2026</span></td><td>Banco AV Villas</td><td>Barranquilla</td><td>Puerta exterior</td><td>—</td><td><span style="color:#DC2626;font-weight:600">Sin asignar</span></td><td>—</td><td><span class="badge by">Pendiente</span></td><td>—</td><td><button class="btn btn-primary btn-sm" onclick="openAsignar('FMM-6069-2026','Barranquilla')">Asignar</button></td></tr>
-        <tr data-e="ejecucion"><td><span class="os">FMM-6317-2026</span></td><td>Banco de Occidente</td><td>Valledupar</td><td>Pisos y enchapes</td><td>PRE092026-B</td><td>Roberth Ordoñez</td><td><span class="badge br">ARL vencida</span></td><td><span class="badge bb">En ejecución</span></td><td>$285.000</td><td style="display:flex;gap:4px;"><button class="btn btn-ghost btn-sm" onclick="openDetalle('FMM-6317-2026')">Ver</button><button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="copiarLinkTec('FMM-6317-2026','Roberth Ordoñez')">📱</button></td></tr>
-        <tr data-e="pendiente"><td><span class="os">FMM-6618-2026</span></td><td>Banco AV Villas</td><td>Barranquilla</td><td>Mantenimiento puertas</td><td>—</td><td><span style="color:#DC2626;font-weight:600">Sin asignar</span></td><td>—</td><td><span class="badge by">Pendiente</span></td><td>—</td><td><button class="btn btn-primary btn-sm" onclick="openAsignar('FMM-6618-2026','Barranquilla')">Asignar</button></td></tr>
-      </tbody>
+      <tbody id="solTableBody">
+            <tr><td colspan="10" style="text-align:center;padding:32px;color:#9CA3AF;">
+              <div style="font-size:24px;margin-bottom:8px;">⏳</div>
+              Cargando solicitudes desde Sheets...
+            </td></tr>
+          </tbody>
     </table>
   </div>
 </div>
