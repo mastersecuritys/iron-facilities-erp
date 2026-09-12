@@ -1355,18 +1355,14 @@ async function subirFotoADrive(file, tipo) {
     const mime = file.type;
 
     try {
-      const res = await fetch(BACKEND_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-          accion: 'subir_foto',
-          nro_os: nroOS,
-          tipo: tipo,
-          nombre: file.name,
-          base64: base64,
-          mime: mime
-        })
+      // Usar JSONP para evitar CORS — pasar datos como parámetros GET
+      const data = await callBackend('subir_foto', {
+        nro_os: nroOS,
+        tipo: tipo,
+        nombre: file.name.replace(/[^a-zA-Z0-9._-]/g, '_'),
+        base64: base64,
+        mime: mime
       });
-      const data = await res.json();
 
       if (data.ok) {
         // Mostrar miniatura en la grilla
@@ -1642,28 +1638,36 @@ async function cargarDashboard() {
   const data = await callBackend('dashboard');
   if (!data.ok) return;
   const d = data.data;
-  
-  // Actualizar KPIs
-  const kpiSol = document.querySelector('.kpi.accent .kpi-val');
-  if (kpiSol) kpiSol.textContent = d.solicitudes_activas || '0';
-  
-  const kpiComp = document.querySelector('.kpi.yellow .kpi-val');
-  if (kpiComp) kpiComp.textContent = d.compras_pendientes || '0';
-  
-  const kpiARL = document.querySelector('.kpi.red .kpi-val');
-  if (kpiARL) kpiARL.textContent = (d.arl_vencidas?.length || 0) + (d.arl_por_vencer?.length || 0);
 
-  // Mostrar alertas ARL
+  // KPIs con IDs específicos
+  const setKPI = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  setKPI('kpi-sol-activas', d.solicitudes_activas || '0');
+  setKPI('kpi-comp-pend', d.compras_pendientes || '0');
+  setKPI('kpi-arl-alerta', (d.arl_vencidas?.length || 0) + (d.arl_por_vencer?.length || 0));
+
+  // También actualizar KPIs por clase (fallback)
+  const kpis = document.querySelectorAll('#page-dashboard .kpi');
+  if (kpis[0]) kpis[0].querySelector('.kpi-val').textContent = d.solicitudes_activas || '0';
+  if (kpis[2]) kpis[2].querySelector('.kpi-val').textContent = d.compras_pendientes || '0';
+  if (kpis[3]) kpis[3].querySelector('.kpi-val').textContent = (d.arl_vencidas?.length || 0) + (d.arl_por_vencer?.length || 0);
+
+  // Alertas ARL
   const alertContainer = document.getElementById('alertas-arl');
   if (alertContainer) {
     alertContainer.innerHTML = '';
+    if ((d.arl_vencidas?.length || 0) + (d.arl_por_vencer?.length || 0) === 0) {
+      alertContainer.innerHTML = '<div class="alert success"><span>✅</span><div>Todas las ARL están vigentes.</div></div>';
+    }
     (d.arl_vencidas || []).forEach(t => {
-      alertContainer.innerHTML += `<div class="alert danger"><span>🔑</span><div>${t.nombre} tiene la ARL vencida (${t.vencio}) — bloqueado.</div></div>`;
+      alertContainer.innerHTML += `<div class="alert danger"><span>🔑</span><div><strong>${t.nombre}</strong> tiene la ARL vencida desde ${t.vencio} — bloqueado para nuevos servicios.</div></div>`;
     });
     (d.arl_por_vencer || []).forEach(t => {
-      alertContainer.innerHTML += `<div class="alert warn"><span>⚠️</span><div>${t.nombre}: ARL vence el ${t.vence}. Renovar urgente.</div></div>`;
+      alertContainer.innerHTML += `<div class="alert warn"><span>⚠️</span><div><strong>${t.nombre}</strong>: ARL vence el ${t.vence}. Renovar urgente.</div></div>`;
     });
   }
+
+  // Cargar tabla reciente del dashboard
+  await cargarSolicitudes();
 }
 
 // Cargar solicitudes desde Sheets real
@@ -1704,12 +1708,23 @@ async function cargarSolicitudes() {
     const tr = document.createElement('tr');
     tr.dataset.e = esCerrado ? 'cerrado' : esPendiente ? 'pendiente' : 'ejecucion';
 
-    const btnAccion = s.tecnico_asignado
-      ? `<div style="display:flex;gap:4px;">
+    // Limpiar y formatear descripción
+    const actividadRaw = s.tipo_actividad || s.descripcion || '';
+    // Quitar "Tipo de mante..." y similares residuales
+    const actividad = actividadRaw
+      .replace(/Tipo de mantenimiento.*/i, '')
+      .replace(/Tipo de activo.*/i, '')
+      .replace(/Locativo\s*/i, '')
+      .replace(/Oficina\s*/i, '')
+      .replace(/Otros\s*/i, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 50) || s.tipo_mantenimiento || '—';
+
+    const btnAccion = `<div style="display:flex;gap:4px;">
            <button class="btn btn-ghost btn-sm" onclick="openDetalle('${s.nro_os_verona}')">Ver</button>
-           <button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="copiarLinkTec('${s.nro_os_verona}','${s.tecnico_asignado}')">📱</button>
-         </div>`
-      : `<button class="btn btn-primary btn-sm" onclick="openAsignar('${s.nro_os_verona}','${s.ciudad || ''}')">Asignar</button>`;
+           ${s.tecnico_asignado ? `<button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;padding:5px 8px;" onclick="copiarLinkTec('${s.nro_os_verona}','${s.tecnico_asignado}')">📱</button>` : ''}
+         </div>`;
 
     const entidadDisplay = s.entidad
       ? `<span style="color:#374151;">${s.entidad}</span>`
@@ -1717,7 +1732,7 @@ async function cargarSolicitudes() {
 
     const tecDisplay = s.tecnico_asignado
       ? `<span style="color:#374151;">${s.tecnico_asignado}</span>`
-      : `<span style="color:#DC2626;font-weight:600;">Sin asignar</span>`;
+      : `<button class="btn btn-primary btn-sm" onclick="openAsignar('${s.nro_os_verona}','${s.ciudad || ''}')">Asignar</button>`;
 
     const arlDisplay = tieneARL
       ? `<span class="badge br">ARL vencida</span>`
@@ -1729,7 +1744,7 @@ async function cargarSolicitudes() {
       <td><span class="os">${s.nro_os_verona || ''}</span></td>
       <td>${entidadDisplay}</td>
       <td style="color:#374151;">${s.ciudad || '—'}</td>
-      <td style="color:#374151;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.tipo_actividad || ''}">${s.tipo_actividad || s.descripcion?.substring(0,40) || '—'}</td>
+      <td style="color:#374151;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${actividadRaw}">${actividad}</td>
       <td style="color:#374151;">${s.nro_cotizacion_interna || '—'}</td>
       <td>${tecDisplay}</td>
       <td>${arlDisplay}</td>
