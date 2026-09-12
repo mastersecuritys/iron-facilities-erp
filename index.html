@@ -382,8 +382,10 @@ tr:hover td{background:#FAFBFC;}
 
 <!-- ══ DASHBOARD ══ -->
 <div id="page-dashboard" class="page active">
+  <div id="alertas-arl">
   <div class="alert danger"><span>🔑</span><div>Roberth Ordoñez tiene la ARL vencida (31/Ago) — bloqueado para nuevos servicios hasta renovar.</div></div>
   <div class="alert warn"><span>⚠️</span><div>Edinson Vargas: ARL vence en 3 días (14/Sep). Renovar antes de que expire.</div></div>
+  </div>
   <div class="kpi-row">
     <div class="kpi accent"><div class="kpi-lbl">Solicitudes activas</div><div class="kpi-val">4</div><div class="kpi-sub">2 en ejecución · 2 pendientes</div></div>
     <div class="kpi green"><div class="kpi-lbl">Facturado este mes</div><div class="kpi-val">$1.4M</div><div class="kpi-sub">3 servicios cerrados</div></div>
@@ -1002,7 +1004,7 @@ tr:hover td{background:#FAFBFC;}
         <div class="fg"><div class="fl">Fecha programada</div><input class="fi" type="date"></div>
       </div>
     </div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('mNuevaSol')">Cancelar</button><button class="btn btn-primary" onclick="showToast('Solicitud guardada ✓');closeM('mNuevaSol')">Guardar solicitud</button></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('mNuevaSol')">Cancelar</button><button class="btn btn-primary" onclick="guardarSolicitudReal()">Guardar solicitud</button></div>
   </div>
 </div>
 
@@ -1396,6 +1398,149 @@ function copiarOS() {
   const num = document.getElementById('os-numero-display').textContent;
   navigator.clipboard.writeText(num).then(() => showToast('Número copiado: ' + num));
 }
+
+
+// ── CONEXIÓN CON APPS SCRIPT (BACKEND) ──────────────
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbzHy6-oyOmvmtNcTYAe5O1L9pcI8ZcMLofoXNojkeEgodRgVuYn3QJMUBe6EnaPm48lsQ/exec';
+
+async function callBackend(accion, params = {}) {
+  try {
+    const url = BACKEND_URL + '?accion=' + accion + '&' + new URLSearchParams(params).toString();
+    const res = await fetch(url);
+    const data = await res.json();
+    return data;
+  } catch(e) {
+    console.error('Error backend:', e);
+    return { ok: false, error: e.message };
+  }
+}
+
+async function callBackendPost(accion, params = {}) {
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion, ...params })
+    });
+    const data = await res.json();
+    return data;
+  } catch(e) {
+    console.error('Error backend POST:', e);
+    return { ok: false, error: e.message };
+  }
+}
+
+// Cargar dashboard desde Sheets real
+async function cargarDashboard() {
+  const data = await callBackend('dashboard');
+  if (!data.ok) return;
+  const d = data.data;
+  
+  // Actualizar KPIs
+  const kpiSol = document.querySelector('.kpi.accent .kpi-val');
+  if (kpiSol) kpiSol.textContent = d.solicitudes_activas || '0';
+  
+  const kpiComp = document.querySelector('.kpi.yellow .kpi-val');
+  if (kpiComp) kpiComp.textContent = d.compras_pendientes || '0';
+  
+  const kpiARL = document.querySelector('.kpi.red .kpi-val');
+  if (kpiARL) kpiARL.textContent = (d.arl_vencidas?.length || 0) + (d.arl_por_vencer?.length || 0);
+
+  // Mostrar alertas ARL
+  const alertContainer = document.getElementById('alertas-arl');
+  if (alertContainer) {
+    alertContainer.innerHTML = '';
+    (d.arl_vencidas || []).forEach(t => {
+      alertContainer.innerHTML += `<div class="alert danger"><span>🔑</span><div>${t.nombre} tiene la ARL vencida (${t.vencio}) — bloqueado.</div></div>`;
+    });
+    (d.arl_por_vencer || []).forEach(t => {
+      alertContainer.innerHTML += `<div class="alert warn"><span>⚠️</span><div>${t.nombre}: ARL vence el ${t.vence}. Renovar urgente.</div></div>`;
+    });
+  }
+}
+
+// Cargar solicitudes desde Sheets real
+async function cargarSolicitudes() {
+  showToast('Cargando solicitudes...');
+  const data = await callBackend('solicitudes');
+  if (!data.ok) { showToast('Error cargando solicitudes'); return; }
+  
+  const tbody = document.querySelector('#solTable tbody');
+  if (!tbody || !data.data.length) return;
+  
+  tbody.innerHTML = '';
+  data.data.forEach(s => {
+    const esPendiente = s.estado && s.estado.includes('Pendiente');
+    const tr = document.createElement('tr');
+    tr.dataset.e = esPendiente ? 'pendiente' : 'ejecucion';
+    tr.innerHTML = `
+      <td><span class="os">${s.nro_os_verona || ''}</span></td>
+      <td style="color:#374151;">${s.entidad || ''}</td>
+      <td style="color:#374151;">${s.ciudad || '—'}</td>
+      <td style="color:#374151;">${s.tipo_actividad || ''}</td>
+      <td style="color:#374151;">${s.nro_cotizacion_interna || '—'}</td>
+      <td style="color:#374151;">${s.tecnico_asignado || '<span style="color:#DC2626;font-weight:600;">Sin asignar</span>'}</td>
+      <td><span class="badge ${s.tecnico_asignado ? 'bg' : 'br'}">${s.tecnico_asignado ? 'OK' : 'Pendiente'}</span></td>
+      <td><span class="badge ${esPendiente ? 'by' : 'bb'}">${s.estado || 'Pendiente'}</span></td>
+      <td style="color:#374151;">${s.vr_factura ? '$' + Number(s.vr_factura).toLocaleString('es-CO') : '—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openDetalle('${s.nro_os_verona}')">Ver</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  showToast('Solicitudes actualizadas ✓');
+}
+
+// Leer emails de Verona manualmente
+async function leerEmailsAhora() {
+  showToast('Leyendo emails de Verona...');
+  const data = await callBackend('leer_emails');
+  if (data.ok) {
+    const msg = `Emails procesados: ${data.creados?.length || 0} nuevos, ${data.actualizados?.length || 0} actualizados`;
+    showToast(msg);
+    await cargarSolicitudes();
+    await cargarDashboard();
+  } else {
+    showToast('Error: ' + data.error);
+  }
+}
+
+// Guardar solicitud real en Sheets
+async function guardarSolicitudReal() {
+  const campos = {
+    nro_os_verona: document.querySelector('[placeholder="FMM-XXXX-2026"]')?.value,
+    entidad: document.querySelector('.fg .fs')?.value,
+    ciudad: document.querySelectorAll('.fi')[4]?.value,
+    descripcion: document.querySelector('.ft')?.value,
+    creado_por: currentUser?.nombre || 'Coordinación'
+  };
+  
+  if (!campos.nro_os_verona) { showToast('Ingresa el número de O.S.'); return; }
+  
+  const data = await callBackendPost('nueva_solicitud', campos);
+  if (data.ok) {
+    showToast('Solicitud guardada en Sheets ✓');
+    closeM('mNuevaSol');
+    await cargarSolicitudes();
+  } else {
+    showToast('Error: ' + data.error);
+  }
+}
+
+// Inicializar conexión al cargar
+window.addEventListener('load', async function() {
+  // Esperar a que el usuario inicie sesión
+  const originalDoLogin = window.doLogin;
+  if (originalDoLogin) {
+    window.doLogin = async function() {
+      originalDoLogin();
+      if (currentUser) {
+        setTimeout(async () => {
+          await cargarDashboard();
+        }, 500);
+      }
+    };
+  }
+});
 
 // ── TOAST ──
 function showToast(msg){
