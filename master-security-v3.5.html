@@ -1408,8 +1408,6 @@ function doLogin() {
   const user = document.getElementById('loginUser').value;
   const pass = document.getElementById('loginPass').value;
   if (!user || !pass) { showToast('⚠ Ingresa usuario y contraseña'); return; }
-  const usuarioEncontrado = DEMO_USUARIOS.find(u => u.email === user);
-  if (!usuarioEncontrado) { showToast('⚠ Usuario no existe'); return; }
   _usuarioActual = user;
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display = 'grid';
@@ -1547,6 +1545,7 @@ function renderUsuarios() {
   const tbody = document.getElementById('usuariosTableBody');
   tbody.innerHTML = '';
   DEMO_USUARIOS.forEach(u => {
+    if (u.usuario === _usuarioActual) return;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${u.nombre}</td>
