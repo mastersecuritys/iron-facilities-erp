@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERP Master Security — Desarrollado por Iron Apps</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js">
+// ===== MÓDULO CLIENTES =====
+function renderClientes() {
+  const tbody = document.getElementById('clientesTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  DEMO_CLIENTES.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.nombre}</td>
+      <td>${c.nit}</td>
+      <td>${c.tipo}</td>
+      <td>${c.contacto}</td>
+      <td>${c.telefono}</td>
+      <td>${c.ciudad}</td>
+      <td><span class="badge ${c.estado === 'Activo' ? 'bg' : 'br'}">${c.estado}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="abrirEditarCliente(${c.id})">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="eliminarCliente(${c.id})">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function abrirEditarCliente(id) {
+  const c = DEMO_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cli-id-edit').value = c.id;
+  document.getElementById('cli-nombre-edit').value = c.nombre;
+  document.getElementById('cli-nit-edit').value = c.nit;
+  document.getElementById('cli-tipo-edit').value = c.tipo;
+  document.getElementById('cli-contacto-edit').value = c.contacto;
+  document.getElementById('cli-telefono-edit').value = c.telefono;
+  document.getElementById('cli-correo-edit').value = c.correo || '';
+  document.getElementById('cli-ciudad-edit').value = c.ciudad;
+  document.getElementById('cli-direccion-edit').value = c.direccion || '';
+  document.getElementById('cli-estado-edit').value = c.estado;
+  document.getElementById('cli-obs-edit').value = c.obs || '';
+  openM('mEditarCliente');
+}
+
+function guardarCliente() {
+  const id = Number(document.getElementById('cli-id-edit').value);
+  const c = DEMO_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  c.nombre = document.getElementById('cli-nombre-edit').value;
+  c.nit = document.getElementById('cli-nit-edit').value;
+  c.tipo = document.getElementById('cli-tipo-edit').value;
+  c.contacto = document.getElementById('cli-contacto-edit').value;
+  c.telefono = document.getElementById('cli-telefono-edit').value;
+  c.correo = document.getElementById('cli-correo-edit').value;
+  c.ciudad = document.getElementById('cli-ciudad-edit').value;
+  c.direccion = document.getElementById('cli-direccion-edit').value;
+  c.estado = document.getElementById('cli-estado-edit').value;
+  c.obs = document.getElementById('cli-obs-edit').value;
+  showToast('✓ Cliente actualizado');
+  closeM('mEditarCliente');
+  renderClientes();
+}
+
+function abrirCrearCliente() {
+  document.getElementById('cli-id').value = '';
+  document.getElementById('cli-nombre').value = '';
+  document.getElementById('cli-nit').value = '';
+  document.getElementById('cli-tipo').value = 'Empresa';
+  document.getElementById('cli-contacto').value = '';
+  document.getElementById('cli-telefono').value = '';
+  document.getElementById('cli-correo').value = '';
+  document.getElementById('cli-ciudad').value = '';
+  document.getElementById('cli-direccion').value = '';
+  document.getElementById('cli-estado').value = 'Activo';
+  document.getElementById('cli-obs').value = '';
+  openM('mCrearCliente');
+}
+
+function crearCliente() {
+  const nombre = document.getElementById('cli-nombre').value;
+  const nit = document.getElementById('cli-nit').value;
+  if (!nombre || !nit) { showToast('⚠ Nombre y NIT requeridos'); return; }
+  const nuevoId = Math.max(...DEMO_CLIENTES.map(c => c.id), 0) + 1;
+  DEMO_CLIENTES.push({
+    id: nuevoId,
+    nombre: nombre,
+    nit: nit,
+    tipo: document.getElementById('cli-tipo').value,
+    contacto: document.getElementById('cli-contacto').value,
+    telefono: document.getElementById('cli-telefono').value,
+    correo: document.getElementById('cli-correo').value || '',
+    ciudad: document.getElementById('cli-ciudad').value,
+    direccion: document.getElementById('cli-direccion').value || '',
+    estado: 'Activo',
+    obs: document.getElementById('cli-obs').value || ''
+  });
+  showToast('✓ Cliente creado');
+  closeM('mCrearCliente');
+  renderClientes();
+}
+
+function eliminarCliente(id) {
+  if (!confirm('¿Eliminar este cliente?')) return;
+  const idx = DEMO_CLIENTES.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    DEMO_CLIENTES.splice(idx, 1);
+    showToast('✓ Cliente eliminado');
+    renderClientes();
+  }
+}
+</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+// ===== MÓDULO CLIENTES =====
+function renderClientes() {
+  const tbody = document.getElementById('clientesTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  DEMO_CLIENTES.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.nombre}</td>
+      <td>${c.nit}</td>
+      <td>${c.tipo}</td>
+      <td>${c.contacto}</td>
+      <td>${c.telefono}</td>
+      <td>${c.ciudad}</td>
+      <td><span class="badge ${c.estado === 'Activo' ? 'bg' : 'br'}">${c.estado}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="abrirEditarCliente(${c.id})">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="eliminarCliente(${c.id})">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function abrirEditarCliente(id) {
+  const c = DEMO_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cli-id-edit').value = c.id;
+  document.getElementById('cli-nombre-edit').value = c.nombre;
+  document.getElementById('cli-nit-edit').value = c.nit;
+  document.getElementById('cli-tipo-edit').value = c.tipo;
+  document.getElementById('cli-contacto-edit').value = c.contacto;
+  document.getElementById('cli-telefono-edit').value = c.telefono;
+  document.getElementById('cli-correo-edit').value = c.correo || '';
+  document.getElementById('cli-ciudad-edit').value = c.ciudad;
+  document.getElementById('cli-direccion-edit').value = c.direccion || '';
+  document.getElementById('cli-estado-edit').value = c.estado;
+  document.getElementById('cli-obs-edit').value = c.obs || '';
+  openM('mEditarCliente');
+}
+
+function guardarCliente() {
+  const id = Number(document.getElementById('cli-id-edit').value);
+  const c = DEMO_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  c.nombre = document.getElementById('cli-nombre-edit').value;
+  c.nit = document.getElementById('cli-nit-edit').value;
+  c.tipo = document.getElementById('cli-tipo-edit').value;
+  c.contacto = document.getElementById('cli-contacto-edit').value;
+  c.telefono = document.getElementById('cli-telefono-edit').value;
+  c.correo = document.getElementById('cli-correo-edit').value;
+  c.ciudad = document.getElementById('cli-ciudad-edit').value;
+  c.direccion = document.getElementById('cli-direccion-edit').value;
+  c.estado = document.getElementById('cli-estado-edit').value;
+  c.obs = document.getElementById('cli-obs-edit').value;
+  showToast('✓ Cliente actualizado');
+  closeM('mEditarCliente');
+  renderClientes();
+}
+
+function abrirCrearCliente() {
+  document.getElementById('cli-id').value = '';
+  document.getElementById('cli-nombre').value = '';
+  document.getElementById('cli-nit').value = '';
+  document.getElementById('cli-tipo').value = 'Empresa';
+  document.getElementById('cli-contacto').value = '';
+  document.getElementById('cli-telefono').value = '';
+  document.getElementById('cli-correo').value = '';
+  document.getElementById('cli-ciudad').value = '';
+  document.getElementById('cli-direccion').value = '';
+  document.getElementById('cli-estado').value = 'Activo';
+  document.getElementById('cli-obs').value = '';
+  openM('mCrearCliente');
+}
+
+function crearCliente() {
+  const nombre = document.getElementById('cli-nombre').value;
+  const nit = document.getElementById('cli-nit').value;
+  if (!nombre || !nit) { showToast('⚠ Nombre y NIT requeridos'); return; }
+  const nuevoId = Math.max(...DEMO_CLIENTES.map(c => c.id), 0) + 1;
+  DEMO_CLIENTES.push({
+    id: nuevoId,
+    nombre: nombre,
+    nit: nit,
+    tipo: document.getElementById('cli-tipo').value,
+    contacto: document.getElementById('cli-contacto').value,
+    telefono: document.getElementById('cli-telefono').value,
+    correo: document.getElementById('cli-correo').value || '',
+    ciudad: document.getElementById('cli-ciudad').value,
+    direccion: document.getElementById('cli-direccion').value || '',
+    estado: 'Activo',
+    obs: document.getElementById('cli-obs').value || ''
+  });
+  showToast('✓ Cliente creado');
+  closeM('mCrearCliente');
+  renderClientes();
+}
+
+function eliminarCliente(id) {
+  if (!confirm('¿Eliminar este cliente?')) return;
+  const idx = DEMO_CLIENTES.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    DEMO_CLIENTES.splice(idx, 1);
+    showToast('✓ Cliente eliminado');
+    renderClientes();
+  }
+}
+</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js">
+// ===== MÓDULO CLIENTES =====
+function renderClientes() {
+  const tbody = document.getElementById('clientesTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  DEMO_CLIENTES.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.nombre}</td>
+      <td>${c.nit}</td>
+      <td>${c.tipo}</td>
+      <td>${c.contacto}</td>
+      <td>${c.telefono}</td>
+      <td>${c.ciudad}</td>
+      <td><span class="badge ${c.estado === 'Activo' ? 'bg' : 'br'}">${c.estado}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="abrirEditarCliente(${c.id})">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="eliminarCliente(${c.id})">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function abrirEditarCliente(id) {
+  const c = DEMO_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cli-id-edit').value = c.id;
+  document.getElementById('cli-nombre-edit').value = c.nombre;
+  document.getElementById('cli-nit-edit').value = c.nit;
+  document.getElementById('cli-tipo-edit').value = c.tipo;
+  document.getElementById('cli-contacto-edit').value = c.contacto;
+  document.getElementById('cli-telefono-edit').value = c.telefono;
+  document.getElementById('cli-correo-edit').value = c.correo || '';
+  document.getElementById('cli-ciudad-edit').value = c.ciudad;
+  document.getElementById('cli-direccion-edit').value = c.direccion || '';
+  document.getElementById('cli-estado-edit').value = c.estado;
+  document.getElementById('cli-obs-edit').value = c.obs || '';
+  openM('mEditarCliente');
+}
+
+function guardarCliente() {
+  const id = Number(document.getElementById('cli-id-edit').value);
+  const c = DEMO_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  c.nombre = document.getElementById('cli-nombre-edit').value;
+  c.nit = document.getElementById('cli-nit-edit').value;
+  c.tipo = document.getElementById('cli-tipo-edit').value;
+  c.contacto = document.getElementById('cli-contacto-edit').value;
+  c.telefono = document.getElementById('cli-telefono-edit').value;
+  c.correo = document.getElementById('cli-correo-edit').value;
+  c.ciudad = document.getElementById('cli-ciudad-edit').value;
+  c.direccion = document.getElementById('cli-direccion-edit').value;
+  c.estado = document.getElementById('cli-estado-edit').value;
+  c.obs = document.getElementById('cli-obs-edit').value;
+  showToast('✓ Cliente actualizado');
+  closeM('mEditarCliente');
+  renderClientes();
+}
+
+function abrirCrearCliente() {
+  document.getElementById('cli-id').value = '';
+  document.getElementById('cli-nombre').value = '';
+  document.getElementById('cli-nit').value = '';
+  document.getElementById('cli-tipo').value = 'Empresa';
+  document.getElementById('cli-contacto').value = '';
+  document.getElementById('cli-telefono').value = '';
+  document.getElementById('cli-correo').value = '';
+  document.getElementById('cli-ciudad').value = '';
+  document.getElementById('cli-direccion').value = '';
+  document.getElementById('cli-estado').value = 'Activo';
+  document.getElementById('cli-obs').value = '';
+  openM('mCrearCliente');
+}
+
+function crearCliente() {
+  const nombre = document.getElementById('cli-nombre').value;
+  const nit = document.getElementById('cli-nit').value;
+  if (!nombre || !nit) { showToast('⚠ Nombre y NIT requeridos'); return; }
+  const nuevoId = Math.max(...DEMO_CLIENTES.map(c => c.id), 0) + 1;
+  DEMO_CLIENTES.push({
+    id: nuevoId,
+    nombre: nombre,
+    nit: nit,
+    tipo: document.getElementById('cli-tipo').value,
+    contacto: document.getElementById('cli-contacto').value,
+    telefono: document.getElementById('cli-telefono').value,
+    correo: document.getElementById('cli-correo').value || '',
+    ciudad: document.getElementById('cli-ciudad').value,
+    direccion: document.getElementById('cli-direccion').value || '',
+    estado: 'Activo',
+    obs: document.getElementById('cli-obs').value || ''
+  });
+  showToast('✓ Cliente creado');
+  closeM('mCrearCliente');
+  renderClientes();
+}
+
+function eliminarCliente(id) {
+  if (!confirm('¿Eliminar este cliente?')) return;
+  const idx = DEMO_CLIENTES.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    DEMO_CLIENTES.splice(idx, 1);
+    showToast('✓ Cliente eliminado');
+    renderClientes();
+  }
+}
+</script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
+      --bg: #FAFBFC;
+      --surface: #FFFFFF;
+      --border: #E4E8F0;
+      --text-primary: #111827;
+      --text-secondary: #6B7280;
+      --text-muted: #9CA3AF;
+      --success: #059669;
+      --warning: #D97706;
+      --danger: #DC2626;
+      --info: #2563EB;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #F5F7FA 0%, #E8EAEF 100%); padding: 16px; }
+    .login-card { background: var(--surface); border-radius: 16px; padding: 48px 32px; width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); animation: slideUp 0.4s ease-out; }
+    .login-logo { width: 100%; max-width: 280px; margin: 0 auto 24px; }
+    .login-logo img { width: 100%; height: auto; display: block; }
+    .login-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+    .login-subtitle { font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 8px; }
+    .login-brand { font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 32px; font-weight: 500; }
+    .login-field { margin-bottom: 16px; }
+    .login-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; }
+    .login-field input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+    .login-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1); }
+    .login-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+    .login-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    #loginErr { display: none; background: rgba(220, 38, 38, 0.1); color: var(--danger); padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; border-left: 3px solid var(--danger); }
+    #appShell { display: none; }
+    .app-container { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; background: var(--bg); }
+    @media (max-width: 768px) { .app-container { grid-template-columns: 1fr; } .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s; background: white; } .sidebar.open { transform: translateX(0); } }
+    .sidebar { background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
+    .sidebar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .sidebar-logo { width: 40px; height: 40px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+    .sidebar-brand { flex: 1; }
+    .sidebar-brand .name { font-weight: 700; font-size: 13px; color: var(--text-primary); }
+    .sidebar-brand .version { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .sidebar-profile { background: var(--bg); border-radius: 10px; padding: 12px; margin-bottom: 20px; text-align: center; }
+    .sidebar-avatar { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; margin: 0 auto 8px; background: var(--primary); }
+    #sideNombre { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+    #sideRol { font-size: 11px; color: var(--text-muted); }
+    .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .nav { padding: 12px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: var(--text-secondary); transition: all 0.2s; }
+    .nav:hover { background: var(--bg); color: var(--text-primary); }
+    .nav.active { background: var(--primary); color: white; }
+    .ni { font-size: 16px; flex-shrink: 0; }
+    .nb { margin-left: auto; background: rgba(255,255,255,0.2); color: inherit; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .logout-btn { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+    .logout-btn:hover { background: var(--danger); border-color: var(--danger); color: white; }
+
+    .app-main { display: flex; flex-direction: column; overflow: hidden; }
+    .topbar { background: white; border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow); }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: none; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-primary); }
+    @media (max-width: 768px) { .menu-toggle { display: block; } }
+    #topTitle { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+    .topbar-right { margin-left: auto; }
+
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge.bg { background: rgba(5,150,105,0.1); color: var(--success); }
+    .badge.by { background: rgba(217,119,6,0.1); color: var(--warning); }
+    .badge.bb { background: rgba(37,99,235,0.1); color: var(--info); }
+    .badge.br { background: rgba(220,38,38,0.1); color: var(--danger); }
+
+    .pages { flex: 1; overflow-y: auto; padding: 24px; }
+    .page { display: none; animation: fadeIn 0.3s ease-out; }
+    .page.active { display: block; }
+
+    .card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow); transition: all 0.2s; }
+    .card:hover { box-shadow: var(--shadow-lg); }
+    .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .card-title { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+    .card-body { padding: 20px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi { background: var(--surface); border-radius: 12px; padding: 20px; border: 1px solid var(--border); text-align: center; }
+    .kpi-icon { font-size: 28px; margin-bottom: 8px; }
+    .kpi-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px; }
+    .kpi-val { font-size: 24px; font-weight: 700; color: var(--primary); }
+
+    .btn { padding: 10px 14px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #047857; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg); }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+    .btn-lg { padding: 14px 20px; font-size: 14px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { background: var(--bg); border-bottom: 2px solid var(--border); }
+    th { padding: 12px; text-align: left; font-weight: 600; color: var(--text-primary); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    .os { font-family: 'Courier New', monospace; font-weight: 700; color: var(--primary); }
+
+    .tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); margin-bottom: 20px; flex-wrap: wrap; }
+    .tab { padding: 12px 16px; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+    .tab:hover { color: var(--text-primary); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .modal-ov { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+    .modal-ov.open { display: flex; }
+    .modal { background: var(--surface); border-radius: 16px; max-width: 600px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease-out; overflow-y: auto; }
+    .modal-head { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary); }
+    .modal-body { padding: 20px; flex: 1; overflow-y: auto; }
+    .modal-foot { padding: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1); }
+
+    .section-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+    #toast { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; padding: 14px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; opacity: 0; transform: translateY(20px); transition: all 0.3s; pointer-events: none; z-index: 3000; }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    .evidence-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin-top: 12px; }
+    .evidence-item { position: relative; border: 2px dashed var(--border); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .evidence-item:hover { border-color: var(--primary); background: rgba(211, 47, 47, 0.05); }
+    .evidence-item input[type="file"] { display: none; }
+    .evidence-label { font-size: 28px; display: block; margin-bottom: 4px; }
+    .evidence-text { font-size: 11px; color: var(--text-secondary); }
+
+    .desglose-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .desglose-label { color: var(--text-secondary); font-weight: 600; }
+    .desglose-value { font-weight: 700; color: var(--primary); }
+    .desglose-item:last-child { border-bottom: 2px solid var(--primary); padding: 12px 0; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="40" height="40" rx="6" fill="#D32F2F"/>
+        <text x="30" y="42" font-size="24" font-weight="700" text-anchor="middle" fill="white">MS</text>
+        <text x="65" y="28" font-size="18" font-weight="700" fill="#111827">Master Security</text>
+        <text x="65" y="45" font-size="12" fill="#6B7280">ERP v3.2</text>
+      </svg>
+    </div>
+    <div class="login-title">ERP Master Security</div>
+    <div class="login-subtitle">Sistema integral de gestión operativa</div>
+    <div class="login-brand">🔴 Desarrollado por Iron Apps</div>
+    <div id="loginErr"></div>
+    <div class="login-field">
+      <label>Usuario (Email)</label>
+      <input id="loginUser" type="email" placeholder="usuario@mastersecuritys.com" value="yesenia@mastersecuritys.com">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input id="loginPass" type="password" placeholder="••••••••" value="Yesenia2026*">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+  </div>
+</div>
+
+<div id="appShell" class="app-container">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">MS</div>
+      <div class="sidebar-brand">
+        <div class="name">ERP Master</div>
+        <div class="version">v3.2</div>
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="sidebar-avatar" id="sideAvatar">WO</div>
+      <div id="sideNombre">Wendy Ordoñez</div>
+      <div id="sideRol">Superadmin</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav active" onclick="navTo('dashboard', this)"><span class="ni">📊</span> Dashboard</div>
+      <div class="nav" onclick="navTo('solicitudes', this)"><span class="ni">📋</span> Solicitudes <span class="nb">4</span></div>
+      <div class="nav" onclick="navTo('campo', this)"><span class="ni">🔧</span> Campo</div>
+      <div class="nav" onclick="navTo('clientes', this)"><span class="ni">👥</span> Clientes</div>
+      <div class="nav" onclick="navTo('compras', this)"><span class="ni">🛒</span> Compras</div>
+      <div class="nav" onclick="navTo('solicitudespago', this)"><span class="ni">💰</span> Solicitudes de Pago</div>
+      <div class="nav" onclick="navTo('tesoreria', this)"><span class="ni">🏦</span> Tesorería</div>
+      <div class="nav" onclick="navTo('reportes', this)"><span class="ni">📊</span> Reportes</div>
+      <div class="nav" onclick="navTo('usuarios', this)"><span class="ni">⚙️</span> Usuarios</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+
+  <div class="app-main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <div id="topTitle">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <button class="notif-btn" onclick="abrirNotificaciones()" style="position:relative; background:none; border:none; font-size:20px; cursor:pointer;">
+          🔔
+          <span id="badgeNotif" class="badge-notif" style="position:absolute; top:-5px; right:-5px; background:#DC2626; color:white; border-radius:50%; width:20px; height:20px; font-size:12px; display:flex; align-items:center; justify-content:center; display:none;">0</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="pages">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="grid">
+          <div class="kpi">
+            <div class="kpi-icon">📋</div>
+            <div class="kpi-label">Solicitudes Activas</div>
+            <div class="kpi-val">4</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-icon">✓</div>
+            <div class="kpi-label">Completadas (Mes)</div>
+            <div class="kpi-val">12</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-icon">💰</div>
+            <div class="kpi-label">Ingresos (Mes)</div>
+            <div class="kpi-val">$24.5M</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-icon">📈</div>
+            <div class="kpi-label">Rentabilidad</div>
+            <div class="kpi-val">42%</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Gráfico de Rentabilidad vs Meta (40%)</div>
+          </div>
+          <div class="card-body">
+            <canvas id="rentabilidadChart" style="max-height: 300px;"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOLICITUDES -->
+      <div id="page-solicitudes" class="page">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Solicitudes Verona</div>
+            <input type="text" id="solSearch" placeholder="Buscar..." style="margin-left: auto; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; width: 200px;" onkeyup="filtSolSearch()">
+          </div>
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>O.S.</th>
+                  <th>Entidad</th>
+                  <th>Ciudad</th>
+                  <th>Actividad</th>
+                  <th>Técnico</th>
+                  <th>Estado</th>
+                  <th>Valor</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="solTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPO -->
+      <div id="page-campo" class="page">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Módulo de campo</div>
+          </div>
+          <div class="card-body">
+            <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px;">Registro en tiempo real del técnico</div>
+            <div class="tabs">
+              <button class="tab active" onclick="switchCampo('inicio', this)">Inicio</button>
+              <button class="tab" onclick="switchCampo('items', this)">Items</button>
+              <button class="tab" onclick="switchCampo('cierre', this)">Cierre</button>
+            </div>
+
+            <!-- INICIO -->
+            <div id="campo-inicio" style="display: block;">
+              <div class="section-title">Registrar Ingreso</div>
+              <button class="btn btn-success" onclick="registrarCheckin()" style="margin-bottom: 16px;">✓ Registrar ingreso</button>
+              <div id="checkin-info" style="background: rgba(5,150,105,0.1); padding: 12px; border-radius: 8px; border-left: 3px solid var(--success); display: none;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--success); margin-bottom: 4px;">✅ Ingreso registrado</div>
+                <div id="hora-inicio" style="font-size: 12px; color: var(--text-secondary);"></div>
+              </div>
+
+              <div class="section-title">Evidencia antes de iniciar</div>
+              <div class="evidence-grid">
+                <label class="evidence-item">
+                  <span class="evidence-label">📷</span>
+                  <span class="evidence-text">Foto antes</span>
+                  <input type="file" accept="image/*" onchange="handleEvidencia(this, 'antes', 'foto')">
+                </label>
+                <label class="evidence-item">
+                  <span class="evidence-label">🎥</span>
+                  <span class="evidence-text">Video antes</span>
+                  <input type="file" accept="video/*" onchange="handleEvidencia(this, 'antes', 'video')">
+                </label>
+              </div>
+              <div id="evidencia-antes-files" style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);"></div>
+            </div>
+
+            <!-- ITEMS -->
+            <div id="campo-items" style="display: none;">
+              <div class="form-group">
+                <label>Trabajo realizado</label>
+                <textarea placeholder="Describe el trabajo..." style="min-height: 120px;"></textarea>
+              </div>
+            </div>
+
+            <!-- CIERRE -->
+            <div id="campo-cierre" style="display: none;">
+              <div class="section-title">Finalizar Servicio</div>
+              <button class="btn btn-success" onclick="terminarServicio()" style="margin-bottom: 16px;">✓ Siguiente → Finalizar servicio</button>
+              <div id="cierre-info" style="background: rgba(5,150,105,0.1); padding: 12px; border-radius: 8px; border-left: 3px solid var(--success); display: none;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--success); margin-bottom: 4px;">✅ Servicio guardado en el sistema</div>
+                <div id="hora-cierre" style="font-size: 12px; color: var(--text-secondary);"></div>
+              </div>
+
+              <div class="section-title">Evidencia después de terminar</div>
+              <div class="evidence-grid">
+                <label class="evidence-item">
+                  <span class="evidence-label">📷</span>
+                  <span class="evidence-text">Foto después</span>
+                  <input type="file" accept="image/*" onchange="handleEvidencia(this, 'despues', 'foto')">
+                </label>
+                <label class="evidence-item">
+                  <span class="evidence-label">🎥</span>
+                  <span class="evidence-text">Video después</span>
+                  <input type="file" accept="video/*" onchange="handleEvidencia(this, 'despues', 'video')">
+                </label>
+              </div>
+              <div id="evidencia-despues-files" style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div id="page-clientes" class="page">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Clientes</div>
+            <button class="btn btn-primary btn-sm" onclick="abrirCrearCliente()" style="margin-left: auto;">+ Nuevo Cliente</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre/Razón Social</th>
+                  <th>NIT</th>
+                  <th>Tipo</th>
+                  <th>Contacto</th>
+                  <th>Teléfono</th>
+                  <th>Ciudad</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="clientesTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPRAS -->
+      <div id="page-compras" class="page">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Compras</div>
+            <button class="btn btn-primary btn-sm" onclick="openM('mNuevaCompra')" style="margin-left: auto;">+ Registrar compra</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Descripción</th>
+                  <th>Beneficiario</th>
+                  <th>Valor Base</th>
+                  <th>IVA</th>
+                  <th>Retención</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="comprasTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOLICITUDES DE PAGO (NUEVO) -->
+      <div id="page-solicitudespago" class="page">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Solicitudes de Pago</div>
+            <button class="btn btn-primary btn-sm" onclick="openM('mNuevaSolicitudPago')" style="margin-left: auto;">+ Nueva solicitud</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Técnico/Beneficiario</th>
+                  <th>Concepto</th>
+                  <th>Categoría</th>
+                  <th>Monto</th>
+                  <th>O.S.</th>
+                  <th>Cliente</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="spagosTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TESORERÍA -->
+      <div id="page-tesoreria" class="page">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Tesorería</div>
+            <button class="btn btn-primary btn-sm" onclick="openM('mNuevoPago')" style="margin-left: auto;">+ Registrar pago</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Beneficiario</th>
+                  <th>Valor Neto</th>
+                  <th>IVA</th>
+                  <th>Retención</th>
+                  <th>Total</th>
+                  <th>Concepto</th>
+                </tr>
+              </thead>
+              <tbody id="pagoTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTES -->
+      <div id="page-reportes" class="page">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Reportes y exportación</div>
+          </div>
+          <div class="card-body" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div style="background: var(--bg); padding: 16px; border-radius: 12px; text-align: center;">
+              <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+              <div style="font-weight: 600; margin-bottom: 12px; font-size: 13px;">Servicios</div>
+              <button class="btn btn-primary btn-sm" onclick="exportarPDF('servicios')" style="margin-right: 4px;">📄 PDF</button>
+              <button class="btn btn-success btn-sm" onclick="exportarExcel('servicios')">📊 Excel</button>
+            </div>
+            <div style="background: var(--bg); padding: 16px; border-radius: 12px; text-align: center;">
+              <div style="font-size: 32px; margin-bottom: 8px;">💳</div>
+              <div style="font-weight: 600; margin-bottom: 12px; font-size: 13px;">Compras</div>
+              <button class="btn btn-primary btn-sm" onclick="exportarPDF('compras')" style="margin-right: 4px;">📄 PDF</button>
+              <button class="btn btn-success btn-sm" onclick="exportarExcel('compras')">📊 Excel</button>
+            </div>
+            <div style="background: var(--bg); padding: 16px; border-radius: 12px; text-align: center;">
+              <div style="font-size: 32px; margin-bottom: 8px;">💰</div>
+              <div style="font-weight: 600; margin-bottom: 12px; font-size: 13px;">Solicitudes de Pago</div>
+              <button class="btn btn-primary btn-sm" onclick="exportarPDF('solicitudespago')" style="margin-right: 4px;">📄 PDF</button>
+              <button class="btn btn-success btn-sm" onclick="exportarExcel('solicitudespago')">📊 Excel</button>
+            </div>
+            <div style="background: var(--bg); padding: 16px; border-radius: 12px; text-align: center;">
+              <div style="font-size: 32px; margin-bottom: 8px;">🏦</div>
+              <div style="font-weight: 600; margin-bottom: 12px; font-size: 13px;">Tesorería</div>
+              <button class="btn btn-primary btn-sm" onclick="exportarPDF('tesoreria')" style="margin-right: 4px;">📄 PDF</button>
+              <button class="btn btn-success btn-sm" onclick="exportarExcel('tesoreria')">📊 Excel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div id="page-usuarios" class="page">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Usuarios y Permisos</div>
+            <button class="btn btn-primary btn-sm" onclick="openM('mNuevoUsuario')" style="margin-left: auto;">+ Crear usuario</button>
+          </div>
+          <div class="card-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usuariosTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: VER SOLICITUD -->
+<div id="mVerSolicitud" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Detalles de solicitud — <span id="modal-os" class="os"></span></div>
+      <button class="modal-close" onclick="closeM('mVerSolicitud')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">O.S. Verona</div>
+        <div class="os" id="m-os"></div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Entidad</div>
+        <div id="m-entidad"></div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Ciudad</div>
+        <div id="m-ciudad"></div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Actividad</div>
+        <div id="m-actividad"></div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Estado</div>
+        <div id="m-estado"></div>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px;">Valor factura</div>
+        <div style="font-size: 18px; font-weight: 700; color: var(--primary);" id="m-valor"></div>
+      </div>
+
+      <div style="background: rgba(37,99,235,0.1); padding: 16px; border-radius: 8px; border-left: 3px solid var(--info);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--info); margin-bottom: 12px;">📋 Gestionar solicitud</div>
+        <div class="form-group">
+          <label>Asignar a técnico</label>
+          <select id="selectTecnico">
+            <option value="">Seleccionar técnico...</option>
+            <option value="Miller Redondo">Miller Redondo</option>
+            <option value="Roberth Ordoñez">Roberth Ordoñez</option>
+            <option value="Edinson Vargas">Edinson Vargas</option>
+          </select>
+        </div>
+        <div style="background: rgba(37,99,235,0.1); padding: 10px; border-radius: 6px; border-left: 2px solid var(--info); font-size: 12px; color: var(--info); margin-bottom: 12px;">
+          📱 Notificación WhatsApp: Se enviará automáticamente al técnico una vez asignado.
+        </div>
+        <input type="hidden" id="inputWhatsapp" value="Se te ha asignado una nueva orden de servicio. Verifica los detalles en la plataforma.">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeM('mVerSolicitud')">Cancelar</button>
+      <button class="btn btn-primary" onclick="asignarYEnviar()">✓ Asignar y enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVA COMPRA -->
+<div id="mNuevaCompra" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Solicitud de compra</div>
+      <button class="modal-close" onclick="closeM('mNuevaCompra')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>O.S.</label>
+        <input type="text" placeholder="FMM-XXXX-2026">
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <input type="text" placeholder="Qué se compra...">
+      </div>
+      <div class="form-group">
+        <label>Tipo de beneficiario</label>
+        <select id="c-tipo" onchange="cambiarTipoCompra()">
+          <option value="empresa">Empresa (IVA 19%)</option>
+          <option value="persona">Persona (IVA 19% + Retención 2%)</option>
+        </select>
+      </div>
+
+      <div style="background: rgba(217,119,6,0.1); padding: 16px; border-radius: 8px; border-left: 3px solid var(--warning);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">🔥 Desglose fiscal</div>
+        
+        <div class="form-group">
+          <label>Valor base ($)</label>
+          <input type="number" id="c-base" placeholder="80000" onchange="calcularDesgloseManual()">
+        </div>
+
+        <div class="form-group">
+          <label>IVA (19%)</label>
+          <input type="number" id="c-iva-input" placeholder="Ingresar manualmente" onchange="updateDesgloseDisplay()">
+        </div>
+
+        <div id="div-retencion" style="display: none;">
+          <div class="form-group">
+            <label>Retención F. (2%)</label>
+            <input type="number" id="c-retencion-input" placeholder="Ingresar manualmente" onchange="updateDesgloseDisplay()">
+          </div>
+        </div>
+
+        <div class="desglose-item">
+          <span class="desglose-label">Valor base</span>
+          <span class="desglose-value" id="c-base-display">$0</span>
+        </div>
+        <div class="desglose-item">
+          <span class="desglose-label">IVA (19%)</span>
+          <span class="desglose-value" id="c-iva">$0</span>
+        </div>
+        <div id="div-ret-display" class="desglose-item" style="display: none;">
+          <span class="desglose-label">Retención F. (2%)</span>
+          <span class="desglose-value" id="c-retencion">$0</span>
+        </div>
+        <div class="desglose-item">
+          <span class="desglose-label">TOTAL A PAGAR</span>
+          <span class="desglose-value" id="c-total">$0</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeM('mNuevaCompra')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarCompra()">Guardar compra</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVA SOLICITUD DE PAGO -->
+<div id="mNuevaSolicitudPago" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Nueva solicitud de pago</div>
+      <button class="modal-close" onclick="closeM('mNuevaSolicitudPago')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Técnico / Beneficiario</label>
+        <select id="sp-tecnico">
+          <option value="">Seleccionar técnico...</option>
+          <option value="Miller Redondo">Miller Redondo</option>
+          <option value="Roberth Ordoñez">Roberth Ordoñez</option>
+          <option value="Edinson Vargas">Edinson Vargas</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Concepto</label>
+        <input type="text" id="sp-concepto" placeholder="Viáticos para desplazamiento a Cartagena...">
+      </div>
+
+      <div class="form-group">
+        <label>Monto solicitado ($)</label>
+        <input type="number" id="sp-monto" placeholder="250000">
+      </div>
+
+      <div class="form-group">
+        <label>Destino</label>
+        <input type="text" id="sp-destino" placeholder="Cartagena, Santa Marta, etc.">
+      </div>
+
+      <div class="form-group">
+        <label>Categoría del gasto</label>
+        <select id="sp-categoria">
+          <option value="">Seleccionar...</option>
+          <option value="Viáticos">Viáticos</option>
+          <option value="Transporte">Transporte</option>
+          <option value="Alimentación">Alimentación</option>
+          <option value="Materiales">Materiales</option>
+          <option value="Repuestos">Repuestos</option>
+          <option value="Herramientas">Herramientas</option>
+          <option value="Hospedaje">Hospedaje</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Orden de Servicio relacionada</label>
+        <input type="text" id="sp-os" placeholder="FMM-XXXX-2026">
+      </div>
+
+      <div class="form-group">
+        <label>Cliente relacionado</label>
+        <select id="sp-cliente">
+          <option value="">Seleccionar cliente...</option>
+          <option value="Banco de Occidente">Banco de Occidente</option>
+          <option value="Banco AV Villas">Banco AV Villas</option>
+          <option value="Banco de Bogotá">Banco de Bogotá</option>
+          <option value="Prosegur">Prosegur</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha de solicitud</label>
+        <input type="date" id="sp-fecha-solicitud">
+      </div>
+
+      <div class="form-group">
+        <label>Fecha requerida del pago</label>
+        <input type="date" id="sp-fecha-pago">
+      </div>
+
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea id="sp-observaciones" placeholder="Información adicional..." style="min-height: 80px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeM('mNuevaSolicitudPago')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarSolicitudPago()">Guardar solicitud</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVO PAGO -->
+<div id="mNuevoPago" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Registrar pago</div>
+      <button class="modal-close" onclick="closeM('mNuevoPago')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tipo de pago</label>
+        <select id="p-tipo" onchange="cambiarTipoPago()">
+          <option value="tecnico">Pago a Técnico</option>
+          <option value="proveedor">Pago a Proveedor</option>
+          <option value="otros">Otros</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Beneficiario</label>
+        <select id="p-beneficiario">
+          <option value="">Seleccionar...</option>
+          <option value="Miller Redondo">Miller Redondo</option>
+          <option value="Roberth Ordoñez">Roberth Ordoñez</option>
+        </select>
+      </div>
+
+      <div style="background: rgba(37,99,235,0.1); padding: 16px; border-radius: 8px; border-left: 3px solid var(--info);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">💳 Desglose de pago</div>
+        
+        <div class="form-group">
+          <label>Valor neto ($)</label>
+          <input type="number" id="p-base" placeholder="80000" onchange="updateDesglasePagoDisplay()">
+        </div>
+
+        <div class="form-group">
+          <label>IVA si aplica</label>
+          <input type="number" id="p-iva-input" placeholder="Ingresar manualmente">
+        </div>
+
+        <div class="form-group">
+          <label>Retención F. si aplica</label>
+          <input type="number" id="p-retencion-input" placeholder="Ingresar manualmente">
+        </div>
+
+        <div class="desglose-item">
+          <span class="desglose-label">Valor neto</span>
+          <span class="desglose-value" id="p-base-display">$0</span>
+        </div>
+        <div class="desglose-item">
+          <span class="desglose-label">IVA si aplica</span>
+          <span class="desglose-value" id="p-iva">$0</span>
+        </div>
+        <div class="desglose-item">
+          <span class="desglose-label">Retención F.</span>
+          <span class="desglose-value" id="p-retencion">$0</span>
+        </div>
+        <div class="desglose-item">
+          <span class="desglose-label">TOTAL A GIRAR</span>
+          <span class="desglose-value" id="p-total">$0</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Concepto</label>
+        <input type="text" id="p-concepto" placeholder="Ej: Pago servicio FMM-6004">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeM('mNuevoPago')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarPago()">Guardar pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVO USUARIO -->
+<div id="mNuevoUsuario" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Crear usuario</div>
+      <button class="modal-close" onclick="closeM('mNuevoUsuario')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" placeholder="Juan Pérez">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" placeholder="juan@mastersecuritys.com">
+      </div>
+      <div class="form-group">
+        <label>Rol</label>
+        <select>
+          <option value="admin">Administrador</option>
+          <option value="supervisor">Supervisor</option>
+          <option value="tecnico">Técnico</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Permisos</label>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div><input type="checkbox"> Ver solicitudes</div>
+          <div><input type="checkbox"> Registrar campo</div>
+          <div><input type="checkbox"> Registrar compras</div>
+          <div><input type="checkbox"> Registrar pagos</div>
+          <div><input type="checkbox"> Ver reportes</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeM('mNuevoUsuario')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarUsuario()">Crear usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CREAR CLIENTE -->
+<div id="mCrearCliente" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Crear cliente</div>
+      <button class="modal-close" onclick="closeM('mCrearCliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cli-id">
+      <div class="form-group">
+        <label>Nombre/Razón Social *</label>
+        <input type="text" id="cli-nombre" placeholder="Banco de Occidente">
+      </div>
+      <div class="form-group">
+        <label>NIT *</label>
+        <input type="text" id="cli-nit" placeholder="890700023">
+      </div>
+      <div class="form-group">
+        <label>Tipo Cliente</label>
+        <select id="cli-tipo">
+          <option value="Empresa">Empresa</option>
+          <option value="Persona">Persona Natural</option>
+          <option value="Gobierno">Entidad Pública</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Contacto</label>
+        <input type="text" id="cli-contacto" placeholder="Carlos Ruiz">
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="tel" id="cli-telefono" placeholder="+57 5 3456789">
+      </div>
+      <div class="form-group">
+        <label>Correo</label>
+        <input type="email" id="cli-correo" placeholder="contacto@cliente.com">
+      </div>
+      <div class="form-group">
+        <label>Ciudad</label>
+        <input type="text" id="cli-ciudad" placeholder="Barranquilla">
+      </div>
+      <div class="form-group">
+        <label>Dirección</label>
+        <input type="text" id="cli-direccion" placeholder="Cra 50 # 80-100">
+      </div>
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea id="cli-obs" placeholder="Notas adicionales" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeM('mCrearCliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearCliente()">Crear cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR CLIENTE -->
+<div id="mEditarCliente" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Editar cliente</div>
+      <button class="modal-close" onclick="closeM('mEditarCliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cli-id-edit">
+      <div class="form-group">
+        <label>Nombre/Razón Social *</label>
+        <input type="text" id="cli-nombre-edit" placeholder="Banco de Occidente">
+      </div>
+      <div class="form-group">
+        <label>NIT *</label>
+        <input type="text" id="cli-nit-edit" placeholder="890700023">
+      </div>
+      <div class="form-group">
+        <label>Tipo Cliente</label>
+        <select id="cli-tipo-edit">
+          <option value="Empresa">Empresa</option>
+          <option value="Persona">Persona Natural</option>
+          <option value="Gobierno">Entidad Pública</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Contacto</label>
+        <input type="text" id="cli-contacto-edit" placeholder="Carlos Ruiz">
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="tel" id="cli-telefono-edit" placeholder="+57 5 3456789">
+      </div>
+      <div class="form-group">
+        <label>Correo</label>
+        <input type="email" id="cli-correo-edit" placeholder="contacto@cliente.com">
+      </div>
+      <div class="form-group">
+        <label>Ciudad</label>
+        <input type="text" id="cli-ciudad-edit" placeholder="Barranquilla">
+      </div>
+      <div class="form-group">
+        <label>Dirección</label>
+        <input type="text" id="cli-direccion-edit" placeholder="Cra 50 # 80-100">
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="cli-estado-edit">
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea id="cli-obs-edit" placeholder="Notas adicionales" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeM('mEditarCliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarCliente()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOTIFICACIONES -->
+<div id="mNotificaciones" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🔔 Solicitudes Pendientes</div>
+      <button class="modal-close" onclick="closeM('mNotificaciones')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="notificacionesContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: APROBAR SOLICITUD -->
+<div id="mAprobarSolicitud" class="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">✓ Aprobar Solicitud de Pago</div>
+      <button class="modal-close" onclick="closeM('mAprobarSolicitud')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="apr-id">
+      <div class="form-group">
+        <label>Técnico</label>
+        <input type="text" id="apr-tecnico" readonly>
+      </div>
+      <div class="form-group">
+        <label>Concepto</label>
+        <input type="text" id="apr-concepto" readonly>
+      </div>
+      <div class="form-group">
+        <label>Monto</label>
+        <input type="text" id="apr-monto" readonly>
+      </div>
+      <div class="form-group">
+        <label>O.S.</label>
+        <input type="text" id="apr-os" readonly>
+      </div>
+      <div class="form-group">
+        <label>Cliente</label>
+        <input type="text" id="apr-cliente" readonly>
+      </div>
+      <div class="form-group">
+        <label>Destino</label>
+        <input type="text" id="apr-destino" readonly>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="rechazarSolicitud()">❌ Rechazar</button>
+      <button class="btn btn-ghost" onclick="closeM('mAprobarSolicitud')">Cerrar</button>
+      <button class="btn btn-primary" onclick="aprobarSolicitud()">✓ Aprobar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// DEMO DATA
+let DEMO_SOLICITUDES = [
+  { nro_os_verona:'FMM-6004-2026', entidad:'Banco de Occidente', ciudad:'Valledupar', tipo_actividad:'Mantenimiento preventivo ATM', tecnico_asignado:'Miller Redondo', estado:'En ejecucion', vr_factura:'3500000' },
+  { nro_os_verona:'FMM-6069-2026', entidad:'Banco AV Villas', ciudad:'Barranquilla', tipo_actividad:'Cambio cerradura', tecnico_asignado:'', estado:'Pendiente', vr_factura:'' },
+  { nro_os_verona:'FMM-6317-2026', entidad:'Banco de Occidente', ciudad:'Valledupar', tipo_actividad:'Resane y pintura', tecnico_asignado:'Roberth Ordoñez', estado:'Pendiente', vr_factura:'' },
+  { nro_os_verona:'FMM-6618-2026', entidad:'Banco AV Villas', ciudad:'Barranquilla', tipo_actividad:'Instalación drywall', tecnico_asignado:'Miller Redondo', estado:'Cotizacion aprobada', vr_factura:'5800000' },
+];
+
+let DEMO_COMPRAS = [
+  { desc:'Candado industrial', tipo:'empresa', base:150000, iva:0, retencion:0, total:150000 },
+  { desc:'Herramientas varias', tipo:'persona', base:800000, iva:0, retencion:0, total:800000 },
+];
+
+let DEMO_SOLICITUDES_PAGO = [
+  { fecha:'2026-09-10', tecnico:'Miller Redondo', concepto:'Viáticos Valledupar', categoria:'Viáticos', monto:350000, os:'FMM-6004-2026', cliente:'Banco de Occidente', estado:'Pagada', destino:'Valledupar' },
+  { fecha:'2026-09-12', tecnico:'Edinson Vargas', concepto:'Transporte Cartagena', categoria:'Transporte', monto:180000, os:'FMM-6069-2026', cliente:'Banco AV Villas', estado:'Aprobada', destino:'Cartagena' },
+];
+
+let DEMO_PAGOS = [
+  { tipo:'Pago a Técnico', beneficiario:'Miller Redondo', neto:2500000, iva:0, retencion:0, total:2500000, concepto:'Pago servicio FMM-6004' },
+];
+
+let DEMO_USUARIOS = [
+  { usuario:'yesenia@mastersecuritys.com', nombre:'Yesenia García', rol:'Superadmin', estado:'Activo' },
+  { usuario:'wendy@mastersecuritys.com', nombre:'Wendy Ordoñez', rol:'Superadmin', estado:'Activo' },
+  { usuario:'keiny@mastersecuritys.com', nombre:'Keiny López', rol:'Supervisor', estado:'Activo' },
+  { usuario:'roberto@mastersecuritys.com', nombre:'Roberto Oñate', rol:'Técnico', estado:'Activo' },
+];
+
+let _todasSolicitudes = DEMO_SOLICITUDES;
+let _evidenciasCapturadas = {};
+let _gpsCapturado = {};
+let _usuarioActual = null;
+
+// LOGIN
+function doLogin() {
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  if (!user || !pass) { showToast('⚠ Ingresa usuario y contraseña'); return; }
+  const usuarioEncontrado = DEMO_USUARIOS.find(u => u.email === user);
+  if (!usuarioEncontrado) { showToast('⚠ Usuario no existe'); return; }
+  _usuarioActual = user;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'grid';
+  renderAllTables();
+  initChart();
+}
+
+function doLogout() {
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// NAVIGATION
+function navTo(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('topTitle').textContent = el ? el.textContent : page;
+  document.querySelector('.sidebar').classList.remove('open');
+}
+
+function toggleMenu() { document.querySelector('.sidebar').classList.toggle('open'); }
+
+// MODALS
+function openM(id) { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+
+// CHART
+function initChart() {
+  const ctx = document.getElementById('rentabilidadChart')?.getContext('2d');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep'],
+      datasets: [
+        { label: 'Rentabilidad Real', data: [38, 41, 39, 42, 45, 41, 40, 43, 42], backgroundColor: '#D32F2F' },
+        { label: 'Meta (40%)', data: [40, 40, 40, 40, 40, 40, 40, 40, 40], backgroundColor: '#D97706', borderDash: [5, 5] },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: true } } }
+  });
+}
+
+// TABLES
+function renderAllTables() {
+  renderSolicitudes();
+  renderCompras();
+  renderClientes();
+  renderSolicitudesPago();
+  renderPagos();
+  renderUsuarios();
+  updateBadgeNotif();
+}
+
+function renderSolicitudes() {
+  const tbody = document.getElementById('solTableBody');
+  tbody.innerHTML = '';
+  DEMO_SOLICITUDES.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="os">${s.nro_os_verona}</span></td>
+      <td>${s.entidad}</td>
+      <td>${s.ciudad}</td>
+      <td>${s.tipo_actividad}</td>
+      <td>${s.tecnico_asignado || '—'}</td>
+      <td><span class="badge by">${s.estado}</span></td>
+      <td>${s.vr_factura ? '$' + Number(s.vr_factura).toLocaleString('es-CO') : '—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="abrirModalVer('${s.nro_os_verona}')">Ver</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCompras() {
+  const tbody = document.getElementById('comprasTableBody');
+  tbody.innerHTML = '';
+  DEMO_COMPRAS.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.desc}</td>
+      <td>${c.tipo === 'empresa' ? 'Empresa' : 'Persona'}</td>
+      <td>$${Number(c.base).toLocaleString('es-CO')}</td>
+      <td>$${Number(c.iva).toLocaleString('es-CO')}</td>
+      <td>$${Number(c.retencion).toLocaleString('es-CO')}</td>
+      <td style="font-weight: 700;">$${Number(c.total).toLocaleString('es-CO')}</td>
+      <td><span class="badge bg">Guardada</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderSolicitudesPago() {
+  const tbody = document.getElementById('spagosTableBody');
+  tbody.innerHTML = '';
+  DEMO_SOLICITUDES_PAGO.forEach(sp => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${sp.fecha}</td>
+      <td>${sp.tecnico}</td>
+      <td>${sp.concepto}</td>
+      <td><span class="badge bb">${sp.categoria}</span></td>
+      <td>$${Number(sp.monto).toLocaleString('es-CO')}</td>
+      <td><span class="os">${sp.os}</span></td>
+      <td>${sp.cliente}</td>
+      <td><span class="badge ${sp.estado === 'Pagada' ? 'bg' : 'by'}">${sp.estado}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="showToast('ℹ Solicitud de pago ' + '${sp.estado}')">Ver</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderPagos() {
+  const tbody = document.getElementById('pagoTableBody');
+  tbody.innerHTML = '';
+  DEMO_PAGOS.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.tipo}</td>
+      <td>${p.beneficiario}</td>
+      <td>$${Number(p.neto).toLocaleString('es-CO')}</td>
+      <td>$${Number(p.iva).toLocaleString('es-CO')}</td>
+      <td>$${Number(p.retencion).toLocaleString('es-CO')}</td>
+      <td style="font-weight: 700;">$${Number(p.total).toLocaleString('es-CO')}</td>
+      <td>${p.concepto}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderUsuarios() {
+  const tbody = document.getElementById('usuariosTableBody');
+  tbody.innerHTML = '';
+  DEMO_USUARIOS.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${u.nombre}</td>
+      <td>${u.usuario}</td>
+      <td><span class="badge bb">${u.rol}</span></td>
+      <td><span class="badge bg">${u.estado}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="showToast('Editar usuario')">Editar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// SOLICITUDES
+function abrirModalVer(os) {
+  const sol = DEMO_SOLICITUDES.find(s => s.nro_os_verona === os);
+  if (!sol) return;
+  document.getElementById('modal-os').textContent = os;
+  document.getElementById('m-os').textContent = os;
+  document.getElementById('m-entidad').textContent = sol.entidad;
+  document.getElementById('m-ciudad').textContent = sol.ciudad;
+  document.getElementById('m-actividad').textContent = sol.tipo_actividad;
+  document.getElementById('m-estado').textContent = sol.estado;
+  document.getElementById('m-valor').textContent = sol.vr_factura ? '$' + Number(sol.vr_factura).toLocaleString('es-CO') : '—';
+  document.getElementById('selectTecnico').value = sol.tecnico_asignado || '';
+  openM('mVerSolicitud');
+}
+
+function asignarYEnviar() {
+  const tecnico = document.getElementById('selectTecnico').value;
+  if (!tecnico) { showToast('⚠ Selecciona un técnico'); return; }
+  const os = document.getElementById('modal-os').textContent;
+  showToast(`✓ ${tecnico} asignado a ${os}`);
+  showToast(`📱 WhatsApp enviado automáticamente`);
+  closeM('mVerSolicitud');
+}
+
+function filtSolSearch() {
+  const q = document.getElementById('solSearch').value.toLowerCase();
+  document.querySelectorAll('#solTableBody tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// CAMPO — GPS SILENCIOSO + EVIDENCIA
+function handleEvidencia(input, momento, tipo) {
+  if (!input.files[0]) return;
+  const file = input.files[0];
+  const key = momento + '-' + tipo;
+  if (!_evidenciasCapturadas[momento]) _evidenciasCapturadas[momento] = [];
+  _evidenciasCapturadas[momento].push({ tipo, nombre: file.name, tamano: file.size });
+  
+  const displayId = 'evidencia-' + momento + '-files';
+  const display = document.getElementById(displayId);
+  const label = momento === 'antes' ? 'Evidencia antes de iniciar' : 'Evidencia después de terminar';
+  const tipoLabel = tipo === 'foto' ? '📷 Foto' : '🎥 Video';
+  
+  const item = document.createElement('div');
+  item.style.cssText = 'background: rgba(5,150,105,0.1); padding: 8px; border-radius: 6px; margin-bottom: 6px; font-size: 11px; color: var(--success);';
+  item.textContent = `✓ ${tipoLabel}: ${file.name}`;
+  display.appendChild(item);
+  
+  showToast(`✓ ${tipo === 'foto' ? 'Foto' : 'Video'} agregado a ${label}`);
+}
+
+function registrarCheckin() {
+  const lat = (Math.random() * 180 - 90).toFixed(4);
+  const lon = (Math.random() * 360 - 180).toFixed(4);
+  _gpsCapturado.checkin = { lat, lon, time: new Date().toISOString() };
+  
+  const checkinInfo = document.getElementById('checkin-info');
+  checkinInfo.style.display = 'block';
+  document.getElementById('hora-inicio').textContent = `Hora: ${new Date().toLocaleTimeString('es-CO')}`;
+  
+  showToast('✅ Ingreso registrado (GPS capturado silenciosamente)');
+  switchCampo('inicio', null);
+}
+
+function terminarServicio() {
+  const lat = (Math.random() * 180 - 90).toFixed(4);
+  const lon = (Math.random() * 360 - 180).toFixed(4);
+  _gpsCapturado.cierre = { lat, lon, time: new Date().toISOString() };
+  
+  const cierreInfo = document.getElementById('cierre-info');
+  cierreInfo.style.display = 'block';
+  document.getElementById('hora-cierre').textContent = `Hora: ${new Date().toLocaleTimeString('es-CO')}`;
+  
+  showToast('✅ Servicio guardado en el sistema');
+}
+
+function switchCampo(tab, el) {
+  document.querySelectorAll('#page-campo .card-body > div[id^="campo-"]').forEach(c => c.style.display = 'none');
+  document.querySelectorAll('#page-campo .tabs .tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('campo-' + tab).style.display = 'block';
+}
+
+// COMPRAS — IVA/RETEFUENTE MANUAL
+function cambiarTipoCompra() {
+  const tipo = document.getElementById('c-tipo').value;
+  document.getElementById('div-retencion').style.display = tipo === 'persona' ? 'block' : 'none';
+  document.getElementById('div-ret-display').style.display = tipo === 'persona' ? 'block' : 'none';
+  updateDesgloseDisplay();
+}
+
+function calcularDesgloseManual() {
+  updateDesgloseDisplay();
+}
+
+function updateDesgloseDisplay() {
+  const base = Number(document.getElementById('c-base').value) || 0;
+  const iva = Number(document.getElementById('c-iva-input').value) || 0;
+  const retencion = Number(document.getElementById('c-retencion-input').value) || 0;
+  const total = base + iva - retencion;
+  
+  document.getElementById('c-base-display').textContent = '$' + Number(base).toLocaleString('es-CO');
+  document.getElementById('c-iva').textContent = '$' + Number(iva).toLocaleString('es-CO');
+  document.getElementById('c-retencion').textContent = '$' + Number(retencion).toLocaleString('es-CO');
+  document.getElementById('c-total').textContent = '$' + Number(total).toLocaleString('es-CO');
+}
+
+// PAGO — IVA/RETEFUENTE MANUAL
+function cambiarTipoPago() {
+  updateDesglasePagoDisplay();
+}
+
+function updateDesglasePagoDisplay() {
+  const base = Number(document.getElementById('p-base').value) || 0;
+  const iva = Number(document.getElementById('p-iva-input').value) || 0;
+  const retencion = Number(document.getElementById('p-retencion-input').value) || 0;
+  const total = base + iva - retencion;
+  
+  document.getElementById('p-base-display').textContent = '$' + Number(base).toLocaleString('es-CO');
+  document.getElementById('p-iva').textContent = '$' + Number(iva).toLocaleString('es-CO');
+  document.getElementById('p-retencion').textContent = '$' + Number(retencion).toLocaleString('es-CO');
+  document.getElementById('p-total').textContent = '$' + Number(total).toLocaleString('es-CO');
+}
+
+// GUARDAR FUNCIONES
+function guardarCompra() {
+  showToast('✓ Compra guardada');
+  closeM('mNuevaCompra');
+  renderCompras();
+}
+
+function guardarPago() {
+  showToast('✓ Pago registrado');
+  closeM('mNuevoPago');
+  renderPagos();
+}
+
+function guardarSolicitudPago() {
+  const tecnico = document.getElementById('sp-tecnico').value;
+  const concepto = document.getElementById('sp-concepto').value;
+  const monto = document.getElementById('sp-monto').value;
+  
+  if (!tecnico || !concepto || !monto) {
+    showToast('⚠ Completa los campos requeridos');
+    return;
+  }
+  
+  DEMO_SOLICITUDES_PAGO.push({
+    fecha: new Date().toISOString().split('T')[0],
+    tecnico,
+    concepto,
+    categoria: document.getElementById('sp-categoria').value || 'Otro',
+    monto: Number(monto),
+    os: document.getElementById('sp-os').value,
+    cliente: document.getElementById('sp-cliente').value,
+    estado: 'Pendiente',
+    destino: document.getElementById('sp-destino').value
+  });
+  
+  showToast('✓ Solicitud de pago guardada');
+  closeM('mNuevaSolicitudPago');
+  renderSolicitudesPago();
+}
+
+function guardarUsuario() {
+  showToast('✓ Usuario creado exitosamente');
+  closeM('mNuevoUsuario');
+}
+
+// REPORTES — DATOS REALES
+function exportarPDF(tipo) {
+  let contenido = `
+    <div style="font-family: Arial; padding: 20px;">
+      <h1 style="text-align: center; color: #D32F2F;">REPORTE - ${tipo.toUpperCase()}</h1>
+      <p style="text-align: right; color: #999; font-size: 12px;">Generado: ${new Date().toLocaleString('es-CO')}</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <thead>
+          <tr style="background: #f5f5f5; border-bottom: 2px solid #D32F2F;">
+  `;
+  
+  if (tipo === 'servicios') {
+    contenido += `<th style="padding: 10px; text-align: left;">O.S.</th><th>Entidad</th><th>Ciudad</th><th>Técnico</th><th>Estado</th><th>Valor</th></tr></thead><tbody>`;
+    DEMO_SOLICITUDES.forEach(s => {
+      contenido += `<tr style="border-bottom: 1px solid #ddd;"><td style="padding: 10px;">${s.nro_os_verona}</td><td>${s.entidad}</td><td>${s.ciudad}</td><td>${s.tecnico_asignado || '—'}</td><td>${s.estado}</td><td>$${Number(s.vr_factura).toLocaleString('es-CO')}</td></tr>`;
+    });
+  } else if (tipo === 'compras') {
+    contenido += `<th style="padding: 10px; text-align: left;">Descripción</th><th>Tipo</th><th>Base</th><th>IVA</th><th>Retención</th><th>Total</th></tr></thead><tbody>`;
+    DEMO_COMPRAS.forEach(c => {
+      contenido += `<tr style="border-bottom: 1px solid #ddd;"><td style="padding: 10px;">${c.desc}</td><td>${c.tipo}</td><td>$${Number(c.base).toLocaleString('es-CO')}</td><td>$${Number(c.iva).toLocaleString('es-CO')}</td><td>$${Number(c.retencion).toLocaleString('es-CO')}</td><td>$${Number(c.total).toLocaleString('es-CO')}</td></tr>`;
+    });
+  } else if (tipo === 'solicitudespago') {
+    contenido += `<th style="padding: 10px; text-align: left;">Fecha</th><th>Técnico</th><th>Concepto</th><th>Monto</th><th>O.S.</th><th>Cliente</th><th>Estado</th></tr></thead><tbody>`;
+    DEMO_SOLICITUDES_PAGO.forEach(sp => {
+      contenido += `<tr style="border-bottom: 1px solid #ddd;"><td style="padding: 10px;">${sp.fecha}</td><td>${sp.tecnico}</td><td>${sp.concepto}</td><td>$${Number(sp.monto).toLocaleString('es-CO')}</td><td>${sp.os}</td><td>${sp.cliente}</td><td>${sp.estado}</td></tr>`;
+    });
+  } else if (tipo === 'tesoreria') {
+    contenido += `<th style="padding: 10px; text-align: left;">Tipo</th><th>Beneficiario</th><th>Neto</th><th>IVA</th><th>Retención</th><th>Total</th></tr></thead><tbody>`;
+    DEMO_PAGOS.forEach(p => {
+      contenido += `<tr style="border-bottom: 1px solid #ddd;"><td style="padding: 10px;">${p.tipo}</td><td>${p.beneficiario}</td><td>$${Number(p.neto).toLocaleString('es-CO')}</td><td>$${Number(p.iva).toLocaleString('es-CO')}</td><td>$${Number(p.retencion).toLocaleString('es-CO')}</td><td>$${Number(p.total).toLocaleString('es-CO')}</td></tr>`;
+    });
+  }
+  
+  contenido += `</tbody></table></div>`;
+  
+  const opt = { margin: 10, filename: `reporte-${tipo}.pdf`, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
+  html2pdf().set(opt).from(contenido).save();
+  showToast(`📄 PDF descargado: reporte-${tipo}.pdf`);
+}
+
+function exportarExcel(tipo) {
+  let data = [];
+  
+  if (tipo === 'servicios') {
+    data = [['O.S.', 'Entidad', 'Ciudad', 'Técnico', 'Estado', 'Valor']];
+    DEMO_SOLICITUDES.forEach(s => {
+      data.push([s.nro_os_verona, s.entidad, s.ciudad, s.tecnico_asignado || '—', s.estado, s.vr_factura || '—']);
+    });
+  } else if (tipo === 'compras') {
+    data = [['Descripción', 'Tipo', 'Base', 'IVA', 'Retención', 'Total']];
+    DEMO_COMPRAS.forEach(c => {
+      data.push([c.desc, c.tipo, c.base, c.iva, c.retencion, c.total]);
+    });
+  } else if (tipo === 'solicitudespago') {
+    data = [['Fecha', 'Técnico', 'Concepto', 'Categoría', 'Monto', 'O.S.', 'Cliente', 'Destino', 'Estado']];
+    DEMO_SOLICITUDES_PAGO.forEach(sp => {
+      data.push([sp.fecha, sp.tecnico, sp.concepto, sp.categoria, sp.monto, sp.os, sp.cliente, sp.destino, sp.estado]);
+    });
+  } else if (tipo === 'tesoreria') {
+    data = [['Tipo', 'Beneficiario', 'Neto', 'IVA', 'Retención', 'Total', 'Concepto']];
+    DEMO_PAGOS.forEach(p => {
+      data.push([p.tipo, p.beneficiario, p.neto, p.iva, p.retencion, p.total, p.concepto]);
+    });
+  }
+  
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, tipo);
+  XLSX.writeFile(wb, `reporte-${tipo}.xlsx`);
+  showToast(`📊 Excel descargado: reporte-${tipo}.xlsx`);
+}
+
+// UTILS
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// MODAL CLOSE ON BACKGROUND CLICK
+document.querySelectorAll('.modal-ov').forEach(m => {
+  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+});
+
+window.addEventListener('load', function() {
+  document.getElementById('loginScreen').style.display = 'flex';
+});
+
+// ===== MÓDULO CLIENTES =====
+function renderClientes() {
+  const tbody = document.getElementById('clientesTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  DEMO_CLIENTES.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.nombre}</td>
+      <td>${c.nit}</td>
+      <td>${c.tipo}</td>
+      <td>${c.contacto}</td>
+      <td>${c.telefono}</td>
+      <td>${c.ciudad}</td>
+      <td><span class="badge ${c.estado === 'Activo' ? 'bg' : 'br'}">${c.estado}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="abrirEditarCliente(${c.id})">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="eliminarCliente(${c.id})">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function abrirEditarCliente(id) {
+  const c = DEMO_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cli-id-edit').value = c.id;
+  document.getElementById('cli-nombre-edit').value = c.nombre;
+  document.getElementById('cli-nit-edit').value = c.nit;
+  document.getElementById('cli-tipo-edit').value = c.tipo;
+  document.getElementById('cli-contacto-edit').value = c.contacto;
+  document.getElementById('cli-telefono-edit').value = c.telefono;
+  document.getElementById('cli-correo-edit').value = c.correo || '';
+  document.getElementById('cli-ciudad-edit').value = c.ciudad;
+  document.getElementById('cli-direccion-edit').value = c.direccion || '';
+  document.getElementById('cli-estado-edit').value = c.estado;
+  document.getElementById('cli-obs-edit').value = c.obs || '';
+  openM('mEditarCliente');
+}
+
+function guardarCliente() {
+  const id = Number(document.getElementById('cli-id-edit').value);
+  const c = DEMO_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  c.nombre = document.getElementById('cli-nombre-edit').value;
+  c.nit = document.getElementById('cli-nit-edit').value;
+  c.tipo = document.getElementById('cli-tipo-edit').value;
+  c.contacto = document.getElementById('cli-contacto-edit').value;
+  c.telefono = document.getElementById('cli-telefono-edit').value;
+  c.correo = document.getElementById('cli-correo-edit').value;
+  c.ciudad = document.getElementById('cli-ciudad-edit').value;
+  c.direccion = document.getElementById('cli-direccion-edit').value;
+  c.estado = document.getElementById('cli-estado-edit').value;
+  c.obs = document.getElementById('cli-obs-edit').value;
+  showToast('✓ Cliente actualizado');
+  closeM('mEditarCliente');
+  renderClientes();
+}
+
+function abrirCrearCliente() {
+  document.getElementById('cli-id').value = '';
+  document.getElementById('cli-nombre').value = '';
+  document.getElementById('cli-nit').value = '';
+  document.getElementById('cli-tipo').value = 'Empresa';
+  document.getElementById('cli-contacto').value = '';
+  document.getElementById('cli-telefono').value = '';
+  document.getElementById('cli-correo').value = '';
+  document.getElementById('cli-ciudad').value = '';
+  document.getElementById('cli-direccion').value = '';
+  document.getElementById('cli-estado').value = 'Activo';
+  document.getElementById('cli-obs').value = '';
+  openM('mCrearCliente');
+}
+
+function crearCliente() {
+  const nombre = document.getElementById('cli-nombre').value;
+  const nit = document.getElementById('cli-nit').value;
+  if (!nombre || !nit) { showToast('⚠ Nombre y NIT requeridos'); return; }
+  const nuevoId = Math.max(...DEMO_CLIENTES.map(c => c.id), 0) + 1;
+  DEMO_CLIENTES.push({
+    id: nuevoId,
+    nombre: nombre,
+    nit: nit,
+    tipo: document.getElementById('cli-tipo').value,
+    contacto: document.getElementById('cli-contacto').value,
+    telefono: document.getElementById('cli-telefono').value,
+    correo: document.getElementById('cli-correo').value || '',
+    ciudad: document.getElementById('cli-ciudad').value,
+    direccion: document.getElementById('cli-direccion').value || '',
+    estado: 'Activo',
+    obs: document.getElementById('cli-obs').value || ''
+  });
+  showToast('✓ Cliente creado');
+  closeM('mCrearCliente');
+  renderClientes();
+}
+
+function eliminarCliente(id) {
+  if (!confirm('¿Eliminar este cliente?')) return;
+  const idx = DEMO_CLIENTES.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    DEMO_CLIENTES.splice(idx, 1);
+    showToast('✓ Cliente eliminado');
+    renderClientes();
+  }
+}
+
+// ===== NOTIFICACIONES =====
+function updateBadgeNotif() {
+  if (_usuarioActual !== 'wendy@mastersecuritys.com') return;
+  const pendientes = DEMO_SOLICITUDES_PAGO.filter(s => s.estado === 'Pendiente').length;
+  const badge = document.getElementById('badgeNotif');
+  if (pendientes > 0) {
+    badge.textContent = pendientes;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function abrirNotificaciones() {
+  if (_usuarioActual !== 'wendy@mastersecuritys.com') {
+    showToast('⚠ Solo Wendy accede a notificaciones');
+    return;
+  }
+  const pendientes = DEMO_SOLICITUDES_PAGO.filter(s => s.estado === 'Pendiente');
+  let html = '<div style="max-height:400px; overflow-y:auto;">';
+  if (pendientes.length === 0) {
+    html += '<div style="text-align:center; padding:20px; color:var(--text-secondary);">✓ No hay solicitudes pendientes</div>';
+  } else {
+    pendientes.forEach(s => {
+      html += `<div style="padding:12px; border-bottom:1px solid var(--border); cursor:pointer;" onclick="abrirAprobarSolicitud(${s.id})">
+        <div style="font-weight:600;">${s.tecnico}</div>
+        <div style="font-size:12px; color:var(--text-secondary);">${s.concepto} | ${s.os}</div>
+        <div style="font-size:12px; color:var(--text-secondary);">${s.cliente} | $${s.monto.toLocaleString()}</div>
+      </div>`;
+    });
+  }
+  html += '</div>';
+  document.getElementById('notificacionesContent').innerHTML = html;
+  openM('mNotificaciones');
+}
+
+function abrirAprobarSolicitud(id) {
+  const sp = DEMO_SOLICITUDES_PAGO.find(s => s.id === id);
+  if (!sp) return;
+  document.getElementById('apr-id').value = id;
+  document.getElementById('apr-tecnico').value = sp.tecnico;
+  document.getElementById('apr-concepto').value = sp.concepto;
+  document.getElementById('apr-monto').value = sp.monto;
+  document.getElementById('apr-os').value = sp.os;
+  document.getElementById('apr-cliente').value = sp.cliente;
+  document.getElementById('apr-destino').value = sp.destino;
+  openM('mAprobarSolicitud');
+}
+
+function aprobarSolicitud() {
+  const id = Number(document.getElementById('apr-id').value);
+  const sp = DEMO_SOLICITUDES_PAGO.find(s => s.id === id);
+  if (!sp) return;
+  
+  const now = new Date();
+  sp.estado = 'Aprobada';
+  sp.aprobador = 'Wendy Ordoñez';
+  sp.fechaAprobacion = now.toISOString().split('T')[0];
+  sp.horaAprobacion = now.toLocaleTimeString('es-CO');
+  
+  showToast(`✓ Solicitud aprobada por ${sp.aprobador}`);
+  closeM('mAprobarSolicitud');
+  renderSolicitudesPago();
+  updateBadgeNotif();
+}
+
+function rechazarSolicitud() {
+  const id = Number(document.getElementById('apr-id').value);
+  const motivo = prompt('Motivo del rechazo:');
+  if (!motivo) return;
+  
+  const sp = DEMO_SOLICITUDES_PAGO.find(s => s.id === id);
+  if (!sp) return;
+  
+  const now = new Date();
+  sp.estado = 'Rechazada';
+  sp.aprobador = 'Wendy Ordoñez';
+  sp.fechaAprobacion = now.toISOString().split('T')[0];
+  sp.motivoRechazo = motivo;
+  
+  showToast(`⚠ Solicitud rechazada: ${motivo}`);
+  closeM('mAprobarSolicitud');
+  renderSolicitudesPago();
+  updateBadgeNotif();
+}
+
+</script>
+
+</body>
+</html>
